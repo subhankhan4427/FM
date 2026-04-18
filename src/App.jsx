@@ -177,13 +177,13 @@ const fadeUp = {
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
 const stagger = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
+  show: { transition: { staggerChildren: 0.06 } },
 };
 
 const letterAnim = {
@@ -192,7 +192,7 @@ const letterAnim = {
     opacity: 1,
     y: 0,
     rotateX: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
@@ -899,7 +899,7 @@ function PageTransition({ children }) {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.275, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -949,7 +949,7 @@ function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-4 py-4 sm:px-6 lg:px-8">
       <div
-        className={`mx-auto max-w-7xl rounded-2xl border transition-all duration-300 ${
+        className={`mx-auto max-w-7xl rounded-2xl border transition-all duration-150 ${
           scrolled
             ? 'border-gold/30 bg-canvas/90 shadow-[0_24px_80px_rgba(0,0,0,0.45)]'
             : 'border-white/10 bg-canvas/70'
@@ -1004,7 +1004,7 @@ function Navbar() {
               className="overflow-hidden border-t border-white/10 lg:hidden"
               exit={{ height: 0, opacity: 0 }}
               initial={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.175, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="space-y-5 px-5 py-6">
                 {navLinks.map((link) => (
@@ -1182,7 +1182,7 @@ function CampaignModal({ open, onClose, onBookMeeting }) {
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             onClick={(event) => event.stopPropagation()}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(4,6,232,0.2),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(143,171,255,0.16),transparent_36%)]" />
             <div className="relative">
@@ -1354,7 +1354,7 @@ function CustomCursor() {
           scale: interactive ? 1.7 : 1,
         }}
         className="absolute h-3 w-3 rounded-full bg-gold shadow-[0_0_24px_rgba(4,6,232,0.8)]"
-        transition={{ duration: 0.14, ease: 'linear' }}
+        transition={{ duration: 0.07, ease: 'linear' }}
       />
       <motion.div
         animate={{
@@ -1364,7 +1364,7 @@ function CustomCursor() {
           opacity: interactive ? 0.28 : 0.14,
         }}
         className="absolute h-9 w-9 rounded-full border border-gold/50"
-        transition={{ duration: 0.18, ease: 'linear' }}
+        transition={{ duration: 0.09, ease: 'linear' }}
       />
     </div>
   );
@@ -1375,7 +1375,7 @@ function AnimatedSection({ children, className = '' }) {
     <motion.section
       className={className}
       initial={{ opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       viewport={{ once: true, margin: '-80px' }}
       whileInView={{ opacity: 1, y: 0 }}
     >
@@ -1426,7 +1426,7 @@ function TiltCard({ children, className = '' }) {
 
   return (
     <div
-      className={`glass-card transition-transform duration-300 ${className}`}
+      className={`glass-card transition-transform duration-150 ${className}`}
       onMouseLeave={() => setTilt({ x: 0, y: 0 })}
       onMouseMove={handleMove}
       style={{
@@ -1476,8 +1476,8 @@ function ParticleField() {
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
       size: 2 + Math.random() * 3,
-      duration: 10 + Math.random() * 10,
-      delay: Math.random() * 3,
+      duration: 5 + Math.random() * 5,
+      delay: Math.random() * 1.5,
       opacity: 0.18 + Math.random() * 0.35,
     })),
   );
@@ -1576,7 +1576,7 @@ function StatCounter({ value, prefix = '', suffix = '', label }) {
 
     let frame;
     let startTime;
-    const duration = 1800;
+    const duration = 900;
 
     const update = (timestamp) => {
       if (!startTime) {
@@ -1672,7 +1672,7 @@ function VideoCard({ title, stats, videoUrl, poster, platforms }) {
     <TiltCard className="group overflow-hidden border-t-2 border-gold/60">
       <div className="relative overflow-hidden rounded-[18px]">
         <video
-          className="h-72 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          className="h-72 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           onClick={togglePlayback}
           playsInline
           poster={poster}
@@ -1778,7 +1778,7 @@ function HomePage({ openCampaignModal }) {
             <motion.p
               className="mt-8 max-w-2xl text-lg leading-8 text-mist sm:text-xl"
               initial={{ opacity: 0, y: 30 }}
-              transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: 0.25, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               whileInView={{ opacity: 1, y: 0 }}
             >
               Forever Media reshapes content distribution, scaling short-form
@@ -1790,7 +1790,7 @@ function HomePage({ openCampaignModal }) {
               animate={{ opacity: 1, y: 0 }}
               className="mt-10 flex flex-col gap-4 sm:flex-row"
               initial={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.72, duration: 0.65 }}
+              transition={{ delay: 0.36, duration: 0.325 }}
             >
               <a
                 className="btn-primary"
@@ -1814,7 +1814,7 @@ function HomePage({ openCampaignModal }) {
               animate={{ opacity: 1, y: 0 }}
               className="mt-10 flex flex-wrap items-center gap-3"
               initial={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.84, duration: 0.6 }}
+              transition={{ delay: 0.42, duration: 0.3 }}
             >
               {['TikTok', 'Instagram', 'YouTube Shorts', 'X'].map((platform) => (
                 <PlatformChip key={platform} label={platform} />
@@ -1829,7 +1829,7 @@ function HomePage({ openCampaignModal }) {
             animate={{ opacity: 1, scale: 1 }}
             className="relative"
             initial={{ opacity: 0, scale: 0.94 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ delay: 0.25, duration: 0.4 }}
           >
             <GlassCard className="relative overflow-hidden bg-[#0b1024] p-6 shadow-none backdrop-blur-none sm:p-8">
               <div className="relative space-y-6">
@@ -1874,7 +1874,7 @@ function HomePage({ openCampaignModal }) {
           animate={{ opacity: 1, y: [0, 10, 0] }}
           className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-xs uppercase tracking-[0.3em] text-mist"
           initial={{ opacity: 0 }}
-          transition={{ delay: 1.1, duration: 2, repeat: Infinity }}
+          transition={{ delay: 0.55, duration: 1, repeat: Infinity }}
         >
           <span>Scroll</span>
           <span className="flex h-11 w-7 items-start justify-center rounded-full border border-white/15 p-1.5">
@@ -1914,7 +1914,7 @@ function HomePage({ openCampaignModal }) {
             <motion.div
               className="absolute left-24 right-24 top-1/2 hidden h-px origin-left bg-gradient-to-r from-transparent via-gold/40 to-transparent lg:block"
               initial={{ scaleX: 0 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               viewport={{ once: true }}
               whileInView={{ scaleX: 1 }}
             />
@@ -2292,7 +2292,7 @@ function PageHero({ title, subtitle, badge, actions, variant = 'gold' }) {
                 : 'border-gold/25 bg-white/[0.05] text-gold'
             }`}
             initial={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.65 }}
+            transition={{ duration: 0.325 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
             {badge}
@@ -2300,7 +2300,7 @@ function PageHero({ title, subtitle, badge, actions, variant = 'gold' }) {
           <motion.h1
             className={`mt-8 ${titleClass}`}
             initial={{ opacity: 0, y: 40 }}
-            transition={{ delay: 0.1, duration: 0.8 }}
+            transition={{ delay: 0.05, duration: 0.4 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
             {title}
@@ -2308,7 +2308,7 @@ function PageHero({ title, subtitle, badge, actions, variant = 'gold' }) {
           <motion.p
             className="mt-6 max-w-3xl text-lg leading-8 text-mist sm:text-xl"
             initial={{ opacity: 0, y: 24 }}
-            transition={{ delay: 0.18, duration: 0.7 }}
+            transition={{ delay: 0.09, duration: 0.35 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
             {subtitle}
@@ -2316,7 +2316,7 @@ function PageHero({ title, subtitle, badge, actions, variant = 'gold' }) {
           <motion.div
             className="mt-10 flex flex-col gap-4 sm:flex-row"
             initial={{ opacity: 0, y: 20 }}
-            transition={{ delay: 0.28, duration: 0.6 }}
+            transition={{ delay: 0.14, duration: 0.3 }}
             whileInView={{ opacity: 1, y: 0 }}
           >
             {actions}
@@ -2333,7 +2333,7 @@ function ClipXDashboardMockup() {
     <motion.div
       className="overflow-hidden rounded-[30px] border border-white/10 bg-[#040717]/85 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
       initial={{ opacity: 0, y: 30 }}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       viewport={{ once: true }}
       whileInView={{ opacity: 1, y: 0 }}
     >
@@ -2661,7 +2661,7 @@ function AccordionColumn({ title, items }) {
                 <span className="font-heading text-xl font-bold tracking-[-0.03em] text-ivory">
                   {item.question}
                 </span>
-                <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }}>
                   <ChevronDown className="text-gold" size={18} />
                 </motion.span>
               </button>
@@ -2672,7 +2672,7 @@ function AccordionColumn({ title, items }) {
                     className="overflow-hidden"
                     exit={{ height: 0, opacity: 0 }}
                     initial={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.175, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <p className="pt-4 text-sm leading-7 text-mist">{item.answer}</p>
                   </motion.div>

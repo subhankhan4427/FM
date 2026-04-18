@@ -58,7 +58,7 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-md px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-ivory transition-all duration-300;
+    @apply inline-flex items-center gap-2 rounded-md px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-ivory transition-all duration-150;
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);
@@ -78,7 +78,7 @@
       transparent 70%
     );
     transform: translateX(-140%);
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .btn-primary:hover {
@@ -93,7 +93,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-ivory transition-all duration-300;
+    @apply inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-8 py-4 text-sm font-bold uppercase tracking-[0.18em] text-ivory transition-all duration-150;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
@@ -115,10 +115,10 @@
       0 4px 24px rgba(0, 0, 0, 0.4),
       inset 0 0 0 1px rgba(4, 6, 232, 0.08);
     transition:
-      border-color 0.3s ease,
-      box-shadow 0.3s ease,
-      transform 0.3s ease,
-      background 0.3s ease;
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.15s ease,
+      background 0.15s ease;
   }
 
   .glass-card:hover {
@@ -203,7 +203,7 @@
     display: flex;
     width: max-content;
     gap: 1rem;
-    animation: marquee 28s linear infinite;
+    animation: marquee 14s linear infinite;
   }
 
   .marquee-track-reverse {
@@ -216,7 +216,7 @@
   }
 
   .logo-pill {
-    @apply inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm uppercase tracking-[0.22em] text-mist transition-all duration-300;
+    @apply inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-sm uppercase tracking-[0.22em] text-mist transition-all duration-150;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
@@ -242,7 +242,7 @@
   }
 
   .field-input {
-    @apply w-full rounded-[18px] border border-white/10 bg-white/[0.04] px-4 pb-4 pt-7 text-ivory outline-none transition duration-300;
+    @apply w-full rounded-[18px] border border-white/10 bg-white/[0.04] px-4 pb-4 pt-7 text-ivory outline-none transition duration-150;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
@@ -356,6 +356,6 @@
 @media (max-width: 767px) {
   .marquee-track,
   .marquee-track-reverse {
-    animation-duration: 22s;
+    animation-duration: 11s;
   }
 }
