@@ -2691,9 +2691,15 @@ function ContactPage({ openCalendly }) {
     <div>
       <PageHero
         actions={
-          <a className="btn-secondary" href="mailto:contact@forevermedia.io">
-            Email the Team
-          </a>
+          <>
+            <button className="btn-primary" onClick={openCalendly} type="button">
+              Book a Meeting
+              <CalendarDays size={18} />
+            </button>
+            <a className="btn-secondary" href="mailto:contact@forevermedia.io">
+              Email the Team
+            </a>
+          </>
         }
         badge="Contact Forever Media"
         subtitle="Whether you are a brand looking to scale or a clipper ready to earn, we are here."
@@ -2733,7 +2739,7 @@ function ContactPage({ openCalendly }) {
                     />
                   }
                   label="Discord"
-                  value="discord.gg/forevermedia"
+                  value="Forever Media"
                 />
                 <ContactInfoItem
                   href="https://www.instagram.com/forevermedia.io"
@@ -2742,31 +2748,6 @@ function ContactPage({ openCalendly }) {
                   value="@forevermedia.io"
                 />
 
-              </div>
-
-              <div className="rounded-[24px] border border-gold/20 bg-gold/10 p-5 shadow-[0_0_40px_rgba(4,6,232,0.1)]">
-                <p className="text-xs uppercase tracking-[0.24em] text-gold/80">
-                  Quick Action
-                </p>
-                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="max-w-sm">
-                    <p className="font-heading text-2xl font-bold tracking-[-0.04em] text-ivory">
-                      Prefer to talk it through live?
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-ivory/80">
-                      Book a meeting and we will walk through your campaign goals,
-                      launch timing, and next steps together.
-                    </p>
-                  </div>
-                  <button
-                    className="btn-primary justify-center sm:min-w-[220px]"
-                    onClick={openCalendly}
-                    type="button"
-                  >
-                    Book a Meeting
-                    <CalendarDays size={18} />
-                  </button>
-                </div>
               </div>
 
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-8">
@@ -2789,7 +2770,7 @@ function ContactPage({ openCalendly }) {
             </div>
           </GlassCard>
 
-          <ContactForm />
+          <ContactForm openCalendly={openCalendly} />
         </div>
       </AnimatedSection>
     </div>
@@ -2818,7 +2799,7 @@ function ContactInfoItem({ href, icon, label, value }) {
   );
 }
 
-function ContactForm() {
+function ContactForm({ openCalendly }) {
   const [submitted, setSubmitted] = useState(false);
   const [submittedLabel, setSubmittedLabel] = useState('Your email draft is ready.');
 
@@ -2853,6 +2834,30 @@ function ContactForm() {
 
   return (
     <GlassCard className="relative p-8">
+      <div className="rounded-[24px] border border-gold/20 bg-gold/10 p-5 shadow-[0_0_40px_rgba(4,6,232,0.1)]">
+        <p className="text-xs uppercase tracking-[0.24em] text-gold/80">
+          Faster Option
+        </p>
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-md">
+            <p className="font-heading text-2xl font-bold tracking-[-0.04em] text-ivory">
+              Need a faster answer?
+            </p>
+            <p className="mt-2 text-sm leading-7 text-ivory/80">
+              Skip the back and forth and book a meeting with the team directly.
+            </p>
+          </div>
+          <button
+            className="btn-primary justify-center sm:min-w-[220px]"
+            onClick={openCalendly}
+            type="button"
+          >
+            Book a Meeting
+            <CalendarDays size={18} />
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-4">
         <div>
           <span className="eyebrow">Contact Form</span>
