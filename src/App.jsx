@@ -19,6 +19,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
+  CalendarDays,
   ChevronDown,
   Clapperboard,
   Coins,
@@ -54,6 +55,123 @@ const platformIcons = {
   Discord: discordIcon,
 };
 
+const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL ?? '';
+const CALENDLY_SCRIPT_SOURCES = [
+  'https://calendly.com/assets/external/widget.js',
+  'https://assets.calendly.com/assets/external/widget.js',
+];
+const CALENDLY_STYLE_SOURCES = [
+  'https://calendly.com/assets/external/widget.css',
+  'https://assets.calendly.com/assets/external/widget.css',
+];
+
+let calendlyScriptPromise;
+let calendlyStylePromise;
+
+function loadScriptWithFallback(id, sources) {
+  if (typeof document === 'undefined') {
+    return Promise.reject(new Error('Document is not available.'));
+  }
+
+  if (document.getElementById(id)) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const tryLoad = (index) => {
+      if (index >= sources.length) {
+        reject(new Error('Unable to load script.'));
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = id;
+      script.async = true;
+      script.src = sources[index];
+      script.onload = () => resolve();
+      script.onerror = () => {
+        script.remove();
+        tryLoad(index + 1);
+      };
+      document.body.appendChild(script);
+    };
+
+    tryLoad(0);
+  });
+}
+
+function loadStylesheetWithFallback(id, sources) {
+  if (typeof document === 'undefined') {
+    return Promise.reject(new Error('Document is not available.'));
+  }
+
+  if (document.getElementById(id)) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const tryLoad = (index) => {
+      if (index >= sources.length) {
+        reject(new Error('Unable to load stylesheet.'));
+        return;
+      }
+
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = sources[index];
+      link.onload = () => resolve();
+      link.onerror = () => {
+        link.remove();
+        tryLoad(index + 1);
+      };
+      document.head.appendChild(link);
+    };
+
+    tryLoad(0);
+  });
+}
+
+function ensureCalendlyAssets() {
+  if (!calendlyStylePromise) {
+    calendlyStylePromise = loadStylesheetWithFallback(
+      'calendly-widget-style',
+      CALENDLY_STYLE_SOURCES,
+    ).catch((error) => {
+      calendlyStylePromise = undefined;
+      throw error;
+    });
+  }
+
+  if (!calendlyScriptPromise) {
+    calendlyScriptPromise = loadScriptWithFallback(
+      'calendly-widget-script',
+      CALENDLY_SCRIPT_SOURCES,
+    ).catch((error) => {
+      calendlyScriptPromise = undefined;
+      throw error;
+    });
+  }
+
+  return Promise.all([calendlyStylePromise, calendlyScriptPromise]);
+}
+
+async function openCalendlyPopup() {
+  if (!CALENDLY_URL) {
+    return { ok: false, reason: 'missing-url' };
+  }
+
+  await ensureCalendlyAssets();
+
+  if (window.Calendly?.initPopupWidget) {
+    window.Calendly.initPopupWidget({ url: CALENDLY_URL });
+    return { ok: true };
+  }
+
+  window.open(CALENDLY_URL, '_blank', 'noopener,noreferrer');
+  return { ok: true };
+}
+
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   show: {
@@ -86,9 +204,9 @@ const navLinks = [
 ];
 
 const homeStats = [
-  { value: 500, prefix: '$', suffix: 'K+', label: 'Paid Out to Clippers' },
-  { value: 2000, suffix: '+', label: 'Clipper Network' },
-  { value: 500, suffix: 'M+', label: 'Views Generated' },
+  { value: 100, prefix: '$', suffix: 'K+', label: 'Paid Out to Clippers' },
+  { value: 11, suffix: 'K+', label: 'Clipper Network' },
+  { value: 1.1, suffix: 'B+', label: 'Views Generated' },
   { value: 150, suffix: '+', label: 'Brand Collaborations' },
   { value: 1, suffix: 'M+', label: 'Clips Created' },
 ];
@@ -587,6 +705,46 @@ const clipxAdminDocsSections = [
 
 function App() {
   const location = useLocation();
+  const [campaignModalOpen, setCampaignModalOpen] = useState(false);
+  const [calendlyMessage, setCalendlyMessage] = useState('');
+
+  useEffect(() => {
+    setCampaignModalOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!calendlyMessage) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCalendlyMessage('');
+    }, 4200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [calendlyMessage]);
+
+  const handleOpenCampaignModal = () => setCampaignModalOpen(true);
+  const handleCloseCampaignModal = () => setCampaignModalOpen(false);
+  const handleBookMeeting = async () => {
+    let result;
+
+    try {
+      result = await openCalendlyPopup();
+    } catch (error) {
+      setCalendlyMessage('Calendly could not be loaded right now. Please try again in a moment.');
+      return;
+    }
+
+    if (!result.ok) {
+      setCalendlyMessage(
+        'Add your Calendly event URL to VITE_CALENDLY_URL to enable meeting booking.',
+      );
+      return;
+    }
+
+    setCampaignModalOpen(false);
+  };
 
   return (
     <SiteChrome>
@@ -597,7 +755,7 @@ function App() {
             path="/"
             element={
               <PageTransition>
-                <HomePage />
+                <HomePage openCampaignModal={handleOpenCampaignModal} />
               </PageTransition>
             }
           />
@@ -671,7 +829,7 @@ function App() {
             path="/contact"
             element={
               <PageTransition>
-                <ContactPage />
+                <ContactPage openCalendly={handleBookMeeting} />
               </PageTransition>
             }
           />
@@ -701,6 +859,23 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </AnimatePresence>
+      <CampaignModal
+        onBookMeeting={handleBookMeeting}
+        onClose={handleCloseCampaignModal}
+        open={campaignModalOpen}
+      />
+      <AnimatePresence>
+        {calendlyMessage ? (
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-6 right-6 z-[70] max-w-sm rounded-2xl border border-gold/20 bg-canvas/95 px-5 py-4 text-sm text-ivory shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            exit={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 12 }}
+          >
+            {calendlyMessage}
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </SiteChrome>
   );
@@ -959,6 +1134,102 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function CampaignModal({ open, onClose, onBookMeeting }) {
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-6 py-10 backdrop-blur-md"
+          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-white/10 bg-[#070c1f]/95 p-8 shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            onClick={(event) => event.stopPropagation()}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(4,6,232,0.2),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(143,171,255,0.16),transparent_36%)]" />
+            <div className="relative">
+              <div className="flex items-start justify-between gap-6">
+                <div className="max-w-lg">
+                  <span className="eyebrow">Launch a Campaign</span>
+                  <h2 className="mt-4 font-heading text-4xl font-bold tracking-[-0.05em] text-ivory">
+                    Choose the fastest way to connect with us.
+                  </h2>
+                  <p className="mt-4 text-sm leading-7 text-mist">
+                    Book a meeting to talk through your launch, or head to the
+                    contact page if you would rather send the team an email.
+                  </p>
+                </div>
+                <button
+                  aria-label="Close launch campaign modal"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-ivory transition hover:border-gold/40 hover:text-gold"
+                  onClick={onClose}
+                  type="button"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                <button
+                  className="btn-primary w-full justify-center"
+                  onClick={onBookMeeting}
+                  type="button"
+                >
+                  Book a Meeting
+                  <CalendarDays size={18} />
+                </button>
+                <Link
+                  className="btn-secondary w-full justify-center"
+                  onClick={onClose}
+                  to="/contact"
+                >
+                  Send Us an Email
+                  <Mail size={18} />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
 
@@ -1482,7 +1753,7 @@ function SectionAngle({ flip = false }) {
   );
 }
 
-function HomePage() {
+function HomePage({ openCampaignModal }) {
   return (
     <div>
       <section className="relative isolate flex min-h-[calc(100vh-6rem)] items-center overflow-hidden px-6 pb-20 pt-10 sm:px-8 lg:px-10">
@@ -1530,9 +1801,13 @@ function HomePage() {
                 Get Paid to Clip
                 <ArrowRight size={18} />
               </a>
-              <a className="btn-secondary" href="mailto:contact@forevermedia.io">
+              <button
+                className="btn-secondary"
+                onClick={openCampaignModal}
+                type="button"
+              >
                 Launch a Campaign
-              </a>
+              </button>
             </motion.div>
 
             <motion.div
@@ -1721,10 +1996,14 @@ function HomePage() {
                     Launch a campaign and tap into a global network of clippers ready
                     to distribute your content across every major platform.
                   </p>
-                  <a className="btn-primary" href="mailto:contact@forevermedia.io">
+                  <button
+                    className="btn-primary"
+                    onClick={openCampaignModal}
+                    type="button"
+                  >
                     Launch a Campaign
                     <ArrowRight size={18} />
-                  </a>
+                  </button>
                 </div>
               </GlassCard>
 
@@ -2258,9 +2537,6 @@ function DocsPage({ title, subtitle, sections, ctaLabel, ctaTo, badge, variant }
                         <span className="rounded-full border border-gold/20 bg-gold/10 px-4 py-2 font-heading text-lg font-bold tracking-[0.04em] text-gold">
                           {item.command}
                         </span>
-                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-mist">
-                          Invite screenshot
-                        </span>
                       </div>
                       <p className="mt-5 text-sm leading-7 text-ivory/85">{item.description}</p>
                       <div className="mt-5 overflow-hidden rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-3">
@@ -2271,7 +2547,7 @@ function DocsPage({ title, subtitle, sections, ctaLabel, ctaTo, badge, variant }
                             <span className="h-2 w-2 rounded-full bg-white/20" />
                           </div>
                           <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-xs uppercase tracking-[0.22em] text-mist">
-                            {item.command} preview
+                            {item.command}
                           </div>
                         </div>
                       </div>
@@ -2410,7 +2686,7 @@ function AccordionColumn({ title, items }) {
   );
 }
 
-function ContactPage() {
+function ContactPage({ openCalendly }) {
   return (
     <div>
       <PageHero
@@ -2468,6 +2744,31 @@ function ContactPage() {
 
               </div>
 
+              <div className="rounded-[24px] border border-gold/20 bg-gold/10 p-5 shadow-[0_0_40px_rgba(4,6,232,0.1)]">
+                <p className="text-xs uppercase tracking-[0.24em] text-gold/80">
+                  Quick Action
+                </p>
+                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="max-w-sm">
+                    <p className="font-heading text-2xl font-bold tracking-[-0.04em] text-ivory">
+                      Prefer to talk it through live?
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-ivory/80">
+                      Book a meeting and we will walk through your campaign goals,
+                      launch timing, and next steps together.
+                    </p>
+                  </div>
+                  <button
+                    className="btn-primary justify-center sm:min-w-[220px]"
+                    onClick={openCalendly}
+                    type="button"
+                  >
+                    Book a Meeting
+                    <CalendarDays size={18} />
+                  </button>
+                </div>
+              </div>
+
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-8">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(4,6,232,0.12),transparent_45%)]" />
                 <div className="relative flex items-center gap-5">
@@ -2519,11 +2820,31 @@ function ContactInfoItem({ href, icon, label, value }) {
 
 function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [submittedLabel, setSubmittedLabel] = useState('Your email draft is ready.');
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name')?.toString().trim() ?? '';
+    const email = formData.get('email')?.toString().trim() ?? '';
+    const role = formData.get('role')?.toString().trim() ?? '';
+    const subject = formData.get('subject')?.toString().trim() ?? 'Forever Media Inquiry';
+    const message = formData.get('message')?.toString().trim() ?? '';
+
+    const mailBody = [
+      name ? `Name: ${name}` : '',
+      email ? `Email: ${email}` : '',
+      role ? `Role: ${role}` : '',
+      '',
+      message,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    window.location.href = `mailto:contact@forevermedia.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailBody)}`;
+    setSubmittedLabel('Your email draft is ready.');
     setSubmitted(true);
-    event.currentTarget.reset();
 
     window.setTimeout(() => {
       setSubmitted(false);
@@ -2539,9 +2860,6 @@ function ContactForm() {
             Start the conversation.
           </h2>
         </div>
-        <span className="hidden rounded-full border border-gold/20 bg-gold/10 px-4 py-2 text-xs uppercase tracking-[0.24em] text-gold sm:inline-flex">
-          UI Demo
-        </span>
       </div>
 
       <form className="mt-10 space-y-5" onSubmit={handleSubmit}>
@@ -2549,16 +2867,11 @@ function ContactForm() {
           <FloatingField id="name" label="Name" type="text" />
           <FloatingField id="email" label="Email" type="email" />
         </div>
-        <FloatingSelect id="role" label="Role">
-          <option value="">Select a role</option>
-          <option>Brand / Creator</option>
-          <option>Clipper</option>
-          <option>Other</option>
-        </FloatingSelect>
+        
         <FloatingField id="subject" label="Subject" type="text" />
         <FloatingTextarea id="message" label="Message" rows={6} />
         <button className="btn-primary w-full justify-center" type="submit">
-          Submit Message
+          Send Email
           <Send size={18} />
         </button>
       </form>
@@ -2571,7 +2884,7 @@ function ContactForm() {
             exit={{ opacity: 0, y: 12 }}
             initial={{ opacity: 0, y: 12 }}
           >
-            Message sent. We will be in touch shortly.
+            {submittedLabel}
           </motion.div>
         ) : null}
       </AnimatePresence>
