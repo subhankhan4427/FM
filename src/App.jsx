@@ -265,47 +265,87 @@ const clipperFaqs = [
 
 const privacySections = [
   {
-    title: 'Information We Collect',
+    title: 'Overview',
     body:
-      'Forever Media may collect contact details, campaign submission data, Discord profile information, and analytics event metadata needed to operate our services.',
+      'At Forever Media, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information across our website, servers and ClipX.',
   },
   {
-    title: 'How We Use Data',
+    title: 'What We Collect',
     body:
-      'We use data to power campaign reporting, improve product performance, respond to support requests, and maintain platform integrity for brands and clippers.',
+      'We collect the information you provide directly to us when you interact with our services, including: Your name and email address (if you contact us or use our services); Social media account links and details when using ClipX or registering on our website; Data submitted through ClipX (e.g., clip links, performance stats). We do not collect or track your IP address or any other location-based data.',
   },
   {
-    title: 'Sharing & Security',
+    title: 'How We Use Your Information',
     body:
-      'We do not sell personal data. Information may be shared with trusted service providers solely to deliver the platform, secure operations, and process payouts.',
+      'We use your information to: Provide and improve our services; Respond to your inquiries or support requests; Monitor and track the performance of clips submitted via ClipX.',
   },
   {
-    title: 'Your Choices',
+    title: 'Data Sharing',
     body:
-      'You can request account updates, ask questions about data usage, or contact us regarding privacy concerns through contact@forevermedia.io.',
+      'We do not sell your personal information. We may share your data with: Third-party service providers to assist with the operation of our services (e.g., hosting or bot management); Legal authorities, if required by law.',
+  },
+  {
+    title: 'Cookies',
+    body:
+      'Our website may use cookies to help us understand site usage and improve functionality. We do not use cookies to track personal data.',
+  },
+  {
+    title: 'Your Rights',
+    body:
+      'You have the right to: Request access to your personal information; Update or delete your information; Contact us for any concerns regarding data usage.',
+  },
+  {
+    title: 'Contact Us',
+    body:
+      'To manage your data or get more details, email us at contact@forevermedia.io.',
   },
 ];
 
 const termsSections = [
   {
-    title: 'Platform Use',
+    title: 'Overview',
     body:
-      'By using Forever Media and ClipX, you agree to provide accurate information, follow campaign rules, and avoid fraudulent or misleading activity.',
+      'Welcome to Forever Media. By using our website, servers, and ClipX, you agree to the following Terms of Service.',
   },
   {
-    title: 'Campaign Performance',
+    title: 'Use of Our Services',
     body:
-      'Performance metrics are validated through platform tracking and internal verification systems. Payout eligibility depends on approved campaign criteria.',
+      'By using our website, servers or ClipX, you agree to: Use services for lawful purposes only; Not engage in activities that disrupt or abuse our services; Follow any guidelines or instructions provided for using ClipX and our platform.',
   },
   {
-    title: 'Payments & Rewards',
+    title: 'Content',
     body:
-      'Forever Media may withhold or reverse rewards tied to spam, manipulated engagement, or violations of campaign requirements and platform rules.',
+      'All content on our website, main server and ClipX is owned by Forever Media or our partners. You may not: Copy, modify, or distribute content without permission.',
   },
   {
-    title: 'Liability & Updates',
+    title: 'User Accounts & Data',
     body:
-      'We may update these terms periodically. Continued use of the platform after changes go live constitutes acceptance of the revised terms.',
+      'When you use our services: You are responsible for maintaining the security and confidentiality of your account; You agree to provide accurate and complete information when registering or submitting clips.',
+  },
+  {
+    title: 'Refund Policy',
+    body:
+      'By launching a campaign through Forever Media, you acknowledge that refunds are not offered once the campaign has started.',
+  },
+  {
+    title: 'Disclaimers',
+    body:
+      'We provide our services "as is." We do not guarantee: That the website or ClipX will always be available or free from errors; Specific results or outcomes from using our services or submitting clips.',
+  },
+  {
+    title: 'Updates and Changes',
+    body:
+      'We reserve the right to: Modify terms at any time; Update privacy policies. Continued use of our services means you accept the updated terms.',
+  },
+  {
+    title: 'Liability',
+    body:
+      'Forever Media is not liable for any damages or losses incurred through the use of our website or services.',
+  },
+  {
+    title: 'Contact Us',
+    body:
+      'For questions or issues regarding these Terms of Service, please contact us at contact@forevermedia.io.',
   },
 ];
 
@@ -638,7 +678,7 @@ function App() {
               <PageTransition>
                 <LegalPage
                   title="Privacy Policy"
-                  subtitle="A premium distribution network still needs clean, readable policy language."
+                  subtitle="Effective April 22, 2025"
                   sections={privacySections}
                 />
               </PageTransition>
@@ -650,7 +690,7 @@ function App() {
               <PageTransition>
                 <LegalPage
                   title="Terms of Service"
-                  subtitle="Clear expectations for brands, creators, and clippers using Forever Media."
+                  subtitle="Effective April 22, 2025"
                   sections={termsSections}
                 />
               </PageTransition>
