@@ -1116,15 +1116,24 @@ function TiltCard({ children, className = '' }) {
   );
 }
 
-function SplitHeadline({ lines, className = '' }) {
+function SplitHeadline({
+  lines,
+  className = '',
+  lineClassName = '',
+  characterClassName = '',
+}) {
   return (
     <motion.div animate="show" className={className} initial="hidden" variants={stagger}>
       {lines.map((line) => (
-        <motion.div className="overflow-hidden" key={line} variants={stagger}>
+        <motion.div
+          className={`overflow-hidden ${lineClassName}`}
+          key={line}
+          variants={stagger}
+        >
           {line.split('').map((character, index) => (
             <motion.span
               key={`${line}-${index}`}
-              className="inline-block"
+              className={`inline-block ${characterClassName}`}
               variants={letterAnim}
             >
               {character === ' ' ? '\u00A0' : character}
@@ -1414,8 +1423,9 @@ function HomePage() {
             </motion.div>
 
             <SplitHeadline
-              className="mt-8 font-display text-[clamp(4rem,10vw,8.75rem)] uppercase leading-[0.9] tracking-[0.04em] text-transparent [background:linear-gradient(180deg,#F0EDE8_16%,#9CB5FF_90%)] bg-clip-text"
-              lines={['Clip To Create.', 'Built To Scale.']}
+              characterClassName="bg-clip-text text-transparent [background:linear-gradient(180deg,#F0EDE8_16%,#9CB5FF_90%)]"
+              className="mt-8 font-display text-[clamp(4rem,10vw,8.75rem)] leading-[0.9] tracking-[0.04em]"
+              lines={['Clip to create.', 'Built to scale.']}
             />
 
             <motion.p
