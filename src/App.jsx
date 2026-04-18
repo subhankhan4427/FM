@@ -1546,32 +1546,7 @@ function HomePage() {
                     </p>
                   </GlassCard>
                 </div>
-                <GlassCard className="overflow-hidden bg-[#0f1733] p-0 shadow-none backdrop-blur-none">
-                  <div className="border-b border-white/10 px-6 py-4">
-                    <p className="text-sm uppercase tracking-[0.24em] text-mist">
-                      Campaign Pulse
-                    </p>
-                  </div>
-                  <div className="grid gap-0 sm:grid-cols-3">
-                    {[
-                      ['Verified Clips', '4,281'],
-                      ['Engagement Lift', '+218%'],
-                      ['Avg. Cost Per Result', '-43%'],
-                    ].map(([label, metric]) => (
-                      <div
-                        className="border-t border-white/10 px-6 py-5 sm:border-l sm:first:border-l-0 sm:border-t-0"
-                        key={label}
-                      >
-                        <p className="text-xs uppercase tracking-[0.24em] text-mist">
-                          {label}
-                        </p>
-                        <p className="mt-3 font-heading text-3xl font-bold tracking-[-0.05em] text-ivory">
-                          {metric}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
+
               </div>
             </GlassCard>
           </motion.div>
