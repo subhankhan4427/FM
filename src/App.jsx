@@ -14,6 +14,7 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
+
 import {
   ArrowRight,
   BadgeCheck,
@@ -43,12 +44,14 @@ import instagramIcon from './assets/platforms/instagram.png';
 import youtubeShortsIcon from './assets/platforms/youtube.png';
 import xIcon from './assets/platforms/x-twitter.png';
 import tiktokIcon from './assets/platforms/tiktok.ico';
+import discordIcon from './assets/platforms/discord-white-icon.png';
 
 const platformIcons = {
   TikTok: tiktokIcon,
   Instagram: instagramIcon,
   'YouTube Shorts': youtubeShortsIcon,
   X: xIcon,
+  Discord: discordIcon,
 };
 
 const fadeUp = {
@@ -925,7 +928,7 @@ function Footer() {
             <div className="flex flex-wrap gap-3 pt-2">
               <SocialLink
                 href="https://www.discord.gg/forevermedia"
-                icon={<MessageCircleMore size={16} />}
+                icon={<img alt="Discord" className="h-4 w-4 object-contain opacity-90" src={discordIcon} />}
                 label="Discord"
               />
               <SocialLink
@@ -2441,8 +2444,18 @@ function ContactPage() {
                   value="contact@forevermedia.io"
                 />
                 <ContactInfoItem
-                  href="https://www.discord.gg/forevermedia"
-                  icon={<MessageCircleMore size={18} />}
+                  href="https://discord.gg/forevermedia"
+                  icon={
+                    <img
+                      alt="Discord"
+                      className="h-4 w-4 object-contain opacity-90"
+                      style={{
+                        filter:
+                          "brightness(0) saturate(100%) invert(12%) sepia(96%) saturate(7475%) hue-rotate(235deg) brightness(95%) contrast(110%)"
+                      }}
+                      src={discordIcon}
+                    />
+                  }
                   label="Discord"
                   value="discord.gg/forevermedia"
                 />
@@ -2452,12 +2465,7 @@ function ContactPage() {
                   label="Instagram"
                   value="@forevermedia.io"
                 />
-                <ContactInfoItem
-                  href="https://whop.com/forevermedia/"
-                  icon={<Store size={18} />}
-                  label="Whop"
-                  value="whop.com/forevermedia"
-                />
+
               </div>
 
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-8">
