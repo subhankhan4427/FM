@@ -39,6 +39,17 @@ import {
 import clipxLogo from '../clipx-logo.png';
 import foreverMediaLogo from '../forever-media-logo-full.png';
 import foreverRelayLogo from '../fr-logo.png';
+import instagramIcon from './assets/platforms/instagram.png';
+import youtubeShortsIcon from './assets/platforms/youtube.png';
+import xIcon from './assets/platforms/x-twitter.png';
+import tiktokIcon from './assets/platforms/tiktok.ico';
+
+const platformIcons = {
+  TikTok: tiktokIcon,
+  Instagram: instagramIcon,
+  'YouTube Shorts': youtubeShortsIcon,
+  X: xIcon,
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -892,7 +903,7 @@ function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-mist md:flex-row md:items-center md:justify-between">
-          <p>(c) 2025 Forever Media Global Ltd. All rights reserved.</p>
+          <p>&copy; 2025 Forever Media Global Ltd. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link className="transition hover:text-gold" to="/privacy">
               Privacy Policy
@@ -1209,14 +1220,34 @@ function HeroBackdrop({ variant = 'gold' }) {
 }
 
 function PlatformChip({ label }) {
+  const iconSrc = platformIcons[label];
+
   return (
-    <span className="platform-chip">
+    <span aria-label={label} className="platform-chip" title={label}>
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/20 bg-white/[0.03] text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
-        {label === 'YouTube Shorts' ? 'YT' : label[0]}
+        {iconSrc ? (
+          <img alt="" className="h-4 w-4 object-contain opacity-90" src={iconSrc} />
+        ) : (
+          (label === 'YouTube Shorts' ? 'YT' : label[0])
+        )}
       </span>
-      {label}
+      <span className="sr-only">{label}</span>
     </span>
   );
+}
+
+function PlatformIcon({ label, className = '' }) {
+  const iconSrc = platformIcons[label];
+
+  if (!iconSrc) {
+    return (
+      <span className={`text-[10px] font-bold uppercase tracking-[0.18em] text-mist ${className}`}>
+        {label === 'YouTube Shorts' ? 'YT' : label[0]}
+      </span>
+    );
+  }
+
+  return <img alt="" className={className} src={iconSrc} />;
 }
 
 function StatCounter({ value, prefix = '', suffix = '', label }) {
@@ -1372,10 +1403,13 @@ function VideoCard({ title, stats, videoUrl, poster, platforms }) {
         <div className="flex flex-wrap gap-2">
           {platforms.map((platform) => (
             <span
-              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[0.16em] text-mist"
+              aria-label={platform}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]"
               key={platform}
+              title={platform}
             >
-              {platform}
+              <PlatformIcon className="h-4 w-4 object-contain opacity-90" label={platform} />
+              <span className="sr-only">{platform}</span>
             </span>
           ))}
         </div>
@@ -1479,8 +1513,7 @@ function HomePage() {
             initial={{ opacity: 0, scale: 0.94 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            <GlassCard className="relative overflow-hidden p-6 sm:p-8">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(4,6,232,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(143,171,255,0.16),transparent_36%)]" />
+            <GlassCard className="relative overflow-hidden bg-[#0b1024] p-6 shadow-none backdrop-blur-none sm:p-8">
               <div className="relative space-y-6">
                 <div className="flex items-center justify-between">
                   <span className="eyebrow">Live Campaign Surface</span>
@@ -1490,7 +1523,7 @@ function HomePage() {
                   </span>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <GlassCard className="p-5">
+                  <GlassCard className="bg-[#0f1733] p-5 shadow-none backdrop-blur-none">
                     <p className="text-xs uppercase tracking-[0.24em] text-mist">
                       Active Reach
                     </p>
@@ -1501,7 +1534,7 @@ function HomePage() {
                       Rolling clip views across active creator drops.
                     </p>
                   </GlassCard>
-                  <GlassCard className="p-5">
+                  <GlassCard className="bg-[#0f1733] p-5 shadow-none backdrop-blur-none">
                     <p className="text-xs uppercase tracking-[0.24em] text-mist">
                       Campaign Velocity
                     </p>
@@ -1513,7 +1546,7 @@ function HomePage() {
                     </p>
                   </GlassCard>
                 </div>
-                <GlassCard className="overflow-hidden p-0">
+                <GlassCard className="overflow-hidden bg-[#0f1733] p-0 shadow-none backdrop-blur-none">
                   <div className="border-b border-white/10 px-6 py-4">
                     <p className="text-sm uppercase tracking-[0.24em] text-mist">
                       Campaign Pulse
