@@ -657,7 +657,6 @@ function SiteChrome({ children }) {
     <div className="relative min-h-screen overflow-hidden bg-canvas text-ivory">
       <NoiseOverlay />
       <CustomCursor />
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(4,6,232,0.14),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(118,146,255,0.12),transparent_34%)]" />
       <Navbar />
       <main className="relative z-10 pt-24">{children}</main>
       <Footer />
@@ -1126,7 +1125,7 @@ function SplitHeadline({
     <motion.div animate="show" className={className} initial="hidden" variants={stagger}>
       {lines.map((line) => (
         <motion.div
-          className={`overflow-hidden ${lineClassName}`}
+          className={`overflow-hidden whitespace-nowrap ${lineClassName}`}
           key={line}
           variants={stagger}
         >
@@ -1423,7 +1422,7 @@ function HomePage() {
             </motion.div>
 
             <SplitHeadline
-              characterClassName="bg-clip-text text-transparent [background:linear-gradient(180deg,#F0EDE8_16%,#9CB5FF_90%)]"
+              characterClassName="text-ivory"
               className="mt-8 font-display text-[clamp(4rem,10vw,8.75rem)] leading-[0.9] tracking-[0.04em]"
               lines={['Clip to create.', 'Built to scale.']}
             />

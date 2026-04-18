@@ -26,10 +26,7 @@
   body {
     margin: 0;
     min-width: 320px;
-    background:
-      radial-gradient(circle at top, rgba(4, 6, 232, 0.12), transparent 22%),
-      radial-gradient(circle at bottom right, rgba(122, 152, 255, 0.1), transparent 28%),
-      var(--canvas);
+    background: var(--canvas);
     color: var(--ivory);
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
