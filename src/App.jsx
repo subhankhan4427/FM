@@ -1,3 +1,4 @@
+import { getCalApi } from '@calcom/embed-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   AnimatePresence,
@@ -55,120 +56,95 @@ const platformIcons = {
   Discord: discordIcon,
 };
 
-const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL ?? '';
-const CALENDLY_SCRIPT_SOURCES = [
-  'https://calendly.com/assets/external/widget.js',
-  'https://assets.calendly.com/assets/external/widget.js',
-];
-const CALENDLY_STYLE_SOURCES = [
-  'https://calendly.com/assets/external/widget.css',
-  'https://assets.calendly.com/assets/external/widget.css',
-];
+const CAL_BOOKING_URL =
+  import.meta.env.VITE_CALCOM_URL ?? import.meta.env.VITE_CAL_URL ?? '';
+const CAL_UI_CONFIG = {
+  cssVarsPerTheme: {
+    light: { 'cal-brand': '#0406e8' },
+    dark: { 'cal-brand': '#0406e8' },
+  },
+  hideEventTypeDetails: false,
+  layout: 'month_view',
+};
+const CAL_TRIGGER_CONFIG = {
+  layout: 'month_view',
+  useSlotsViewOnSmallScreen: 'true',
+};
 
-let calendlyScriptPromise;
-let calendlyStylePromise;
+let calApiPromise;
 
-function loadScriptWithFallback(id, sources) {
+function normalizeCalLink(value) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return '';
+  }
+
+  try {
+    const url = new URL(trimmedValue);
+    return `${url.pathname}${url.search}`.replace(/^\/+/, '').replace(/\/+$/, '');
+  } catch {
+    return trimmedValue
+      .replace(/^https?:\/\/[^/]+\//i, '')
+      .replace(/^\/+/, '')
+      .replace(/\/+$/, '');
+  }
+}
+
+function getCalNamespace(calLink) {
+  return calLink.split('?')[0].split('/').filter(Boolean).at(-1) ?? '30min';
+}
+
+function ensureCalApi(calLink) {
+  if (!calApiPromise) {
+    calApiPromise = getCalApi({ namespace: getCalNamespace(calLink) })
+      .then((cal) => {
+        cal('ui', CAL_UI_CONFIG);
+        cal('preload', { calLink });
+        return cal;
+      })
+      .catch((error) => {
+        calApiPromise = undefined;
+        throw error;
+      });
+  }
+
+  return calApiPromise;
+}
+
+function openCalPopupFromElementClick(calLink) {
   if (typeof document === 'undefined') {
-    return Promise.reject(new Error('Document is not available.'));
+    return false;
   }
 
-  if (document.getElementById(id)) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    const tryLoad = (index) => {
-      if (index >= sources.length) {
-        reject(new Error('Unable to load script.'));
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = id;
-      script.async = true;
-      script.src = sources[index];
-      script.onload = () => resolve();
-      script.onerror = () => {
-        script.remove();
-        tryLoad(index + 1);
-      };
-      document.body.appendChild(script);
-    };
-
-    tryLoad(0);
-  });
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.hidden = true;
+  trigger.setAttribute('data-cal-namespace', getCalNamespace(calLink));
+  trigger.setAttribute('data-cal-link', calLink);
+  trigger.setAttribute('data-cal-config', JSON.stringify(CAL_TRIGGER_CONFIG));
+  document.body.appendChild(trigger);
+  trigger.click();
+  window.setTimeout(() => trigger.remove(), 0);
+  return true;
 }
 
-function loadStylesheetWithFallback(id, sources) {
-  if (typeof document === 'undefined') {
-    return Promise.reject(new Error('Document is not available.'));
-  }
-
-  if (document.getElementById(id)) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    const tryLoad = (index) => {
-      if (index >= sources.length) {
-        reject(new Error('Unable to load stylesheet.'));
-        return;
-      }
-
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href = sources[index];
-      link.onload = () => resolve();
-      link.onerror = () => {
-        link.remove();
-        tryLoad(index + 1);
-      };
-      document.head.appendChild(link);
-    };
-
-    tryLoad(0);
-  });
-}
-
-function ensureCalendlyAssets() {
-  if (!calendlyStylePromise) {
-    calendlyStylePromise = loadStylesheetWithFallback(
-      'calendly-widget-style',
-      CALENDLY_STYLE_SOURCES,
-    ).catch((error) => {
-      calendlyStylePromise = undefined;
-      throw error;
-    });
-  }
-
-  if (!calendlyScriptPromise) {
-    calendlyScriptPromise = loadScriptWithFallback(
-      'calendly-widget-script',
-      CALENDLY_SCRIPT_SOURCES,
-    ).catch((error) => {
-      calendlyScriptPromise = undefined;
-      throw error;
-    });
-  }
-
-  return Promise.all([calendlyStylePromise, calendlyScriptPromise]);
-}
-
-async function openCalendlyPopup() {
-  if (!CALENDLY_URL) {
+async function openCalBookingPopup() {
+  if (!CAL_BOOKING_URL) {
     return { ok: false, reason: 'missing-url' };
   }
 
-  await ensureCalendlyAssets();
+  const calLink = normalizeCalLink(CAL_BOOKING_URL);
+  if (!calLink) {
+    return { ok: false, reason: 'missing-url' };
+  }
 
-  if (window.Calendly?.initPopupWidget) {
-    window.Calendly.initPopupWidget({ url: CALENDLY_URL });
+  await ensureCalApi(calLink);
+
+  if (openCalPopupFromElementClick(calLink)) {
     return { ok: true };
   }
 
-  window.open(CALENDLY_URL, '_blank', 'noopener,noreferrer');
+  window.open(CAL_BOOKING_URL, '_blank', 'noopener,noreferrer');
   return { ok: true };
 }
 
@@ -706,23 +682,37 @@ const clipxAdminDocsSections = [
 function App() {
   const location = useLocation();
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
-  const [calendlyMessage, setCalendlyMessage] = useState('');
+  const [bookingMessage, setBookingMessage] = useState('');
 
   useEffect(() => {
     setCampaignModalOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!calendlyMessage) {
+    if (!bookingMessage) {
       return undefined;
     }
 
     const timeoutId = window.setTimeout(() => {
-      setCalendlyMessage('');
+      setBookingMessage('');
     }, 4200);
 
     return () => window.clearTimeout(timeoutId);
-  }, [calendlyMessage]);
+  }, [bookingMessage]);
+
+  useEffect(() => {
+    if (!CAL_BOOKING_URL) {
+      return undefined;
+    }
+
+    const calLink = normalizeCalLink(CAL_BOOKING_URL);
+    if (!calLink) {
+      return undefined;
+    }
+
+    ensureCalApi(calLink).catch(() => undefined);
+    return undefined;
+  }, []);
 
   const handleOpenCampaignModal = () => setCampaignModalOpen(true);
   const handleCloseCampaignModal = () => setCampaignModalOpen(false);
@@ -730,15 +720,15 @@ function App() {
     let result;
 
     try {
-      result = await openCalendlyPopup();
+      result = await openCalBookingPopup();
     } catch (error) {
-      setCalendlyMessage('Calendly could not be loaded right now. Please try again in a moment.');
+      setBookingMessage('Cal.com could not be loaded right now. Please try again in a moment.');
       return;
     }
 
     if (!result.ok) {
-      setCalendlyMessage(
-        'Add your Calendly event URL to VITE_CALENDLY_URL to enable meeting booking.',
+      setBookingMessage(
+        'Add your Cal.com booking URL to VITE_CALCOM_URL to enable meeting booking.',
       );
       return;
     }
@@ -829,7 +819,7 @@ function App() {
             path="/contact"
             element={
               <PageTransition>
-                <ContactPage openCalendly={handleBookMeeting} />
+                <ContactPage openBooking={handleBookMeeting} />
               </PageTransition>
             }
           />
@@ -866,14 +856,14 @@ function App() {
         open={campaignModalOpen}
       />
       <AnimatePresence>
-        {calendlyMessage ? (
+        {bookingMessage ? (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
             className="fixed bottom-6 right-6 z-[70] max-w-sm rounded-2xl border border-gold/20 bg-canvas/95 px-5 py-4 text-sm text-ivory shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
             exit={{ opacity: 0, y: 12 }}
             initial={{ opacity: 0, y: 12 }}
           >
-            {calendlyMessage}
+            {bookingMessage}
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -2686,13 +2676,13 @@ function AccordionColumn({ title, items }) {
   );
 }
 
-function ContactPage({ openCalendly }) {
+function ContactPage({ openBooking }) {
   return (
     <div>
       <PageHero
         actions={
           <>
-            <button className="btn-primary" onClick={openCalendly} type="button">
+            <button className="btn-primary" onClick={openBooking} type="button">
               Book a Meeting
               <CalendarDays size={18} />
             </button>
@@ -2770,7 +2760,7 @@ function ContactPage({ openCalendly }) {
             </div>
           </GlassCard>
 
-          <ContactForm openCalendly={openCalendly} />
+          <ContactForm openBooking={openBooking} />
         </div>
       </AnimatedSection>
     </div>
@@ -2799,7 +2789,7 @@ function ContactInfoItem({ href, icon, label, value }) {
   );
 }
 
-function ContactForm({ openCalendly }) {
+function ContactForm({ openBooking }) {
   const [submitted, setSubmitted] = useState(false);
   const [submittedLabel, setSubmittedLabel] = useState('Your email draft is ready.');
 
@@ -2849,7 +2839,7 @@ function ContactForm({ openCalendly }) {
           </div>
           <button
             className="btn-primary justify-center sm:min-w-[220px]"
-            onClick={openCalendly}
+            onClick={openBooking}
             type="button"
           >
             Book a Meeting
