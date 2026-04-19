@@ -2905,7 +2905,7 @@ function ContactForm({ openBooking }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="mt-8 flex items-center justify-between gap-4">
         <div>
           <span className="eyebrow">Contact Form</span>
           <h2 className="mt-4 font-heading text-4xl font-bold tracking-[-0.05em] text-ivory">
