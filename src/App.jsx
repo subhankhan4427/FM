@@ -1,4 +1,4 @@
-import { getCalApi } from '@calcom/embed-react';
+import Cal from '@calcom/embed-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   AnimatePresence,
@@ -58,21 +58,6 @@ const platformIcons = {
 const dev = "senseikhan"
 const CAL_BOOKING_URL =
   import.meta.env.VITE_CALCOM_URL ?? import.meta.env.VITE_CAL_URL ?? '';
-const CAL_UI_CONFIG = {
-  cssVarsPerTheme: {
-    light: { 'cal-brand': '#0406e8' },
-    dark: { 'cal-brand': '#0406e8' },
-  },
-  hideEventTypeDetails: false,
-  layout: 'month_view',
-};
-const CAL_TRIGGER_CONFIG = {
-  layout: 'month_view',
-  useSlotsViewOnSmallScreen: 'true',
-};
-
-let calApiPromise;
-
 function normalizeCalLink(value) {
   const trimmedValue = value.trim();
   if (!trimmedValue) {
@@ -90,62 +75,21 @@ function normalizeCalLink(value) {
   }
 }
 
-function getCalNamespace(calLink) {
-  return calLink.split('?')[0].split('/').filter(Boolean).at(-1) ?? '30min';
-}
-
-function ensureCalApi(calLink) {
-  if (!calApiPromise) {
-    calApiPromise = getCalApi({ namespace: getCalNamespace(calLink) })
-      .then((cal) => {
-        cal('ui', CAL_UI_CONFIG);
-        cal('preload', { calLink });
-        return cal;
-      })
-      .catch((error) => {
-        calApiPromise = undefined;
-        throw error;
-      });
-  }
-
-  return calApiPromise;
-}
-
-function openCalPopupFromElementClick(calLink) {
-  if (typeof document === 'undefined') {
+function isElementVisible(element) {
+  if (!element) {
     return false;
   }
 
-  const trigger = document.createElement('button');
-  trigger.type = 'button';
-  trigger.hidden = true;
-  trigger.setAttribute('data-cal-namespace', getCalNamespace(calLink));
-  trigger.setAttribute('data-cal-link', calLink);
-  trigger.setAttribute('data-cal-config', JSON.stringify(CAL_TRIGGER_CONFIG));
-  document.body.appendChild(trigger);
-  trigger.click();
-  window.setTimeout(() => trigger.remove(), 0);
+  const styles = window.getComputedStyle(element);
+  if (
+    styles.display === 'none' ||
+    styles.visibility === 'hidden' ||
+    styles.opacity === '0'
+  ) {
+    return false;
+  }
+
   return true;
-}
-
-async function openCalBookingPopup() {
-  if (!CAL_BOOKING_URL) {
-    return { ok: false, reason: 'missing-url' };
-  }
-
-  const calLink = normalizeCalLink(CAL_BOOKING_URL);
-  if (!calLink) {
-    return { ok: false, reason: 'missing-url' };
-  }
-
-  await ensureCalApi(calLink);
-
-  if (openCalPopupFromElementClick(calLink)) {
-    return { ok: true };
-  }
-
-  window.open(CAL_BOOKING_URL, '_blank', 'noopener,noreferrer');
-  return { ok: true };
 }
 
 const fadeUp = {
@@ -682,10 +626,19 @@ const clipxAdminDocsSections = [
 function App() {
   const location = useLocation();
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
+  const bodyOverflowRef = useRef('');
+  const htmlOverflowRef = useRef('');
+  const bodyPositionRef = useRef('');
+  const bodyTopRef = useRef('');
+  const bodyWidthRef = useRef('');
+  const scrollYRef = useRef(0);
+  const bodyScrollLockedRef = useRef(false);
 
   useEffect(() => {
     setCampaignModalOpen(false);
+    setBookingModalOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -701,40 +654,84 @@ function App() {
   }, [bookingMessage]);
 
   useEffect(() => {
-    if (!CAL_BOOKING_URL) {
+    if (typeof document === 'undefined') {
       return undefined;
     }
 
-    const calLink = normalizeCalLink(CAL_BOOKING_URL);
-    if (!calLink) {
-      return undefined;
-    }
+    const unlockScrollLock = () => {
+      if (!bodyScrollLockedRef.current) {
+        return;
+      }
 
-    ensureCalApi(calLink).catch(() => undefined);
-    return undefined;
-  }, []);
+      document.documentElement.style.overflow = htmlOverflowRef.current;
+      document.body.style.overflow = bodyOverflowRef.current;
+      document.body.style.position = bodyPositionRef.current;
+      document.body.style.top = bodyTopRef.current;
+      document.body.style.width = bodyWidthRef.current;
+      bodyScrollLockedRef.current = false;
+      window.scrollTo(0, scrollYRef.current);
+    };
+
+    const syncScrollLock = () => {
+      const modalVisible = [...document.querySelectorAll('[data-scroll-lock-modal="true"]')].some(
+        (element) => isElementVisible(element),
+      );
+
+      if (modalVisible) {
+        if (!bodyScrollLockedRef.current) {
+          scrollYRef.current = window.scrollY;
+          htmlOverflowRef.current = document.documentElement.style.overflow;
+          bodyOverflowRef.current = document.body.style.overflow;
+          bodyPositionRef.current = document.body.style.position;
+          bodyTopRef.current = document.body.style.top;
+          bodyWidthRef.current = document.body.style.width;
+
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollYRef.current}px`;
+          document.body.style.width = '100%';
+          bodyScrollLockedRef.current = true;
+        }
+
+        return;
+      }
+
+      unlockScrollLock();
+    };
+    syncScrollLock();
+
+    const observer = new MutationObserver(() => {
+      syncScrollLock();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class', 'state'],
+    });
+
+    return () => {
+      observer.disconnect();
+      unlockScrollLock();
+    };
+  }, [campaignModalOpen, bookingModalOpen]);
 
   const handleOpenCampaignModal = () => setCampaignModalOpen(true);
   const handleCloseCampaignModal = () => setCampaignModalOpen(false);
-  const handleBookMeeting = async () => {
-    let result;
-
-    try {
-      result = await openCalBookingPopup();
-    } catch (error) {
-      setBookingMessage('Cal.com could not be loaded right now. Please try again in a moment.');
-      return;
-    }
-
-    if (!result.ok) {
+  const handleOpenBookingModal = () => {
+    if (!normalizeCalLink(CAL_BOOKING_URL)) {
       setBookingMessage(
         'Add your Cal.com booking URL to VITE_CALCOM_URL to enable meeting booking.',
       );
       return;
     }
 
+    setBookingModalOpen(true);
     setCampaignModalOpen(false);
   };
+  const handleCloseBookingModal = () => setBookingModalOpen(false);
 
   return (
     <SiteChrome>
@@ -819,7 +816,7 @@ function App() {
             path="/contact"
             element={
               <PageTransition>
-                <ContactPage openBooking={handleBookMeeting} />
+                <ContactPage openBooking={handleOpenBookingModal} />
               </PageTransition>
             }
           />
@@ -851,10 +848,11 @@ function App() {
         </Routes>
       </AnimatePresence>
       <CampaignModal
-        onBookMeeting={handleBookMeeting}
+        onBookMeeting={handleOpenBookingModal}
         onClose={handleCloseCampaignModal}
         open={campaignModalOpen}
       />
+      <BookingModal onClose={handleCloseBookingModal} open={bookingModalOpen} />
       <AnimatePresence>
         {bookingMessage ? (
           <motion.div
@@ -1143,25 +1141,13 @@ function CampaignModal({ open, onClose, onBookMeeting }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
-
   return (
     <AnimatePresence>
       {open ? (
         <motion.div
           animate={{ opacity: 1 }}
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-6 py-10 backdrop-blur-md"
+          data-scroll-lock-modal="true"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           onClick={onClose}
@@ -1214,6 +1200,77 @@ function CampaignModal({ open, onClose, onBookMeeting }) {
                   Send Us an Email
                   <Mail size={18} />
                 </Link>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function BookingModal({ open, onClose }) {
+  const calLink = normalizeCalLink(CAL_BOOKING_URL);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
+  if (!calLink) {
+    return null;
+  }
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[65] flex items-start justify-center bg-black/80 px-3 pb-4 pt-28 backdrop-blur-xl sm:px-6 sm:items-center sm:pb-10 sm:pt-14"
+          data-scroll-lock-modal="true"
+          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="relative flex max-h-[calc(100vh-8rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121212] shadow-[0_40px_140px_rgba(0,0,0,0.6)] sm:max-h-[88vh] sm:rounded-[32px]"
+            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            onClick={(event) => event.stopPropagation()}
+            transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(4,6,232,0.08),transparent_28%)]" />
+            <div className="relative px-5 pb-3 pt-4 sm:px-10 sm:pb-5 sm:pt-7">
+              <h2 className="pr-14 text-center font-heading text-2xl font-bold tracking-[-0.05em] text-ivory sm:pr-0 sm:text-4xl">
+                Launch Your Campaign
+              </h2>
+              <button
+                aria-label="Close booking modal"
+                className="absolute right-4 top-3 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-ivory transition hover:border-white/30 hover:text-white sm:right-8 sm:top-7 sm:h-12 sm:w-12"
+                onClick={onClose}
+                type="button"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="relative min-h-0 overflow-auto px-3 pb-3 sm:px-10 sm:pb-8">
+              <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[#171717]">
+                <Cal
+                  calLink={calLink}
+                  className="w-full"
+                  config={{ layout: 'month_view', theme: 'dark' }}
+                />
               </div>
             </div>
           </motion.div>
