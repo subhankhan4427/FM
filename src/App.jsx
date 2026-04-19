@@ -55,7 +55,7 @@ const platformIcons = {
   X: xIcon,
   Discord: discordIcon,
 };
-
+const dev = "senseikhan"
 const CAL_BOOKING_URL =
   import.meta.env.VITE_CALCOM_URL ?? import.meta.env.VITE_CAL_URL ?? '';
 const CAL_UI_CONFIG = {
