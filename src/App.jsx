@@ -1134,7 +1134,6 @@ function LogoWordmark({ className = '', footer = false }) {
         className={footer ? 'h-12 w-auto sm:h-14' : 'h-10 w-auto sm:h-11'}
         src={foreverMediaLogo}
       />
-      <p className="mt-2 text-[10px] uppercase tracking-[0.45em] text-mist">EST. 2024</p>
     </div>
   );
 }
@@ -1337,7 +1336,7 @@ function Footer() {
 
             <div className="h-px w-20 bg-white/10" />
 
-            <div className="space-y-3">
+            <div className="flex flex-col items-start gap-3">
               <SocialLink
                 className="justify-start px-0 py-0 text-sm text-mist hover:text-gold"
                 href="https://www.discord.gg/forevermedia"
@@ -1378,16 +1377,6 @@ function Footer() {
               </Link>
               <Link className="block text-sm text-mist transition hover:text-gold" to="/contact">
                 Contact
-              </Link>
-              <div className="h-px w-20 bg-white/10" />
-              <Link
-                className="block text-sm text-mist transition hover:text-gold"
-                to="/privacy"
-              >
-                Privacy Policy
-              </Link>
-              <Link className="block text-sm text-mist transition hover:text-gold" to="/terms">
-                Terms of Service
               </Link>
             </div>
           </div>
