@@ -2,8 +2,10 @@ import Cal from '@calcom/embed-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   AnimatePresence,
+  animate,
   motion,
   useInView,
+  useMotionValue,
   useScroll,
   useTransform,
 } from 'framer-motion';
@@ -24,7 +26,9 @@ import {
   ChevronDown,
   Clapperboard,
   Coins,
+  Eye,
   Globe2,
+  Heart,
   Instagram,
   Mail,
   Menu,
@@ -47,6 +51,18 @@ import youtubeShortsIcon from './assets/platforms/youtube.png';
 import xIcon from './assets/platforms/x-twitter.png';
 import tiktokIcon from './assets/platforms/tiktok.ico';
 import discordIcon from './assets/platforms/discord-white-icon.png';
+import blockdagClientImage from './assets/clients/blockdag.png';
+import cmajorClientImage from './assets/clients/cmajor.png';
+import heartbreakeyllowClientImage from './assets/clients/Heartbreakeyllow.png';
+import jayAlmightyClientImage from './assets/clients/Jay almighty.png';
+import lahmikejrClientImage from './assets/clients/Lahmikejr.png';
+import polkaClientImage from './assets/clients/polka.png';
+import slimClientImage from './assets/clients/Slim.png';
+import sophieClientImage from './assets/clients/Sophie.png';
+import spartanClientImage from './assets/clients/spartan.png';
+import studleyClientImage from './assets/clients/studley.png';
+import top5ClientImage from './assets/clients/Top5.png';
+import veryscamlikelyClientImage from './assets/clients/Veryscamlikely.png';
 
 const platformIcons = {
   TikTok: tiktokIcon,
@@ -116,6 +132,13 @@ const letterAnim = {
   },
 };
 
+const navbarMotionTransition = {
+  duration: 0.3,
+  ease: [0.22, 1, 0.36, 1],
+};
+
+const NAVBAR_SCROLL_THRESHOLD = 64;
+
 const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'ClipX', to: '/clipx' },
@@ -162,14 +185,224 @@ const workSteps = [
   },
 ];
 
-const brandLogos = [
-  'Polkadot',
-  'Spartans',
-  'C Major',
-  'BlockDAG',
-  'Partner 5',
-  'Partner 6',
+const campaignFilterTabs = [
+  { id: 'all', label: 'All' },
+  { id: 'brands', label: 'Brands' },
+  { id: 'creators', label: 'Creators / Streamers' },
+  { id: 'music', label: 'Music / Audio' },
 ];
+
+const campaignCategoryMeta = {
+  brands: {
+    label: 'Brands',
+    badgeClassName: 'border-[#7a98ff]/30 bg-[#7a98ff]/12 text-[#d7e0ff]',
+    accentColor: '#9cb0ff',
+    progressGradient: 'linear-gradient(90deg, #9cb0ff 0%, #0406e8 100%)',
+    progressShadow: '0 0 24px rgba(122, 152, 255, 0.28)',
+  },
+  creators: {
+    label: 'Creators / Streamers',
+    badgeClassName: 'border-[#58d9ff]/30 bg-[#58d9ff]/12 text-[#c6f7ff]',
+    accentColor: '#7ee6ff',
+    progressGradient: 'linear-gradient(90deg, #7ee6ff 0%, #1a9eff 100%)',
+    progressShadow: '0 0 24px rgba(88, 217, 255, 0.28)',
+  },
+  music: {
+    label: 'Music / Audio',
+    badgeClassName: 'border-[#f0a4ff]/30 bg-[#f0a4ff]/12 text-[#ffd7ff]',
+    accentColor: '#f6c1ff',
+    progressGradient: 'linear-gradient(90deg, #f6c1ff 0%, #9d5bff 100%)',
+    progressShadow: '0 0 24px rgba(240, 164, 255, 0.28)',
+  },
+};
+
+const campaignMarqueeItems = [
+  {
+    id: 'blockdag-launch',
+    category: 'brands',
+    thumbnail: blockdagClientImage,
+    name: 'BlockDAG',
+    campaignType: 'Brand Campaign',
+    duration: '6 weeks',
+    tagline:
+      'Short-form distribution packaged product beats into a steady stream of platform-native clips.',
+    views: 48_200_000,
+    likes: 3_100_000,
+    comments: 128_000,
+    progress: 86,
+    progressLabel: 'Reach Goal',
+  },
+  {
+    id: 'spartan-campaign',
+    category: 'brands',
+    thumbnail: spartanClientImage,
+    name: 'Spartan',
+    campaignType: 'Brand Campaign',
+    duration: '6 days',
+    tagline:
+      'Fast-turn edits helped keep campaign visuals moving through short-form feeds at pace.',
+    views: 192_700_000,
+    likes: 2_400_000,
+    comments: 94_000,
+    progress: 78,
+    progressLabel: 'Awareness Goal',
+  },
+  {
+    id: 'polka-campaign',
+    category: 'brands',
+    thumbnail: polkaClientImage,
+    name: 'Polka',
+    campaignType: 'Brand Campaign',
+    duration: '8 weeks',
+    tagline:
+      'Creator-led cutdowns turned campaign assets into repeatable, high-retention discovery moments.',
+    views: 56_900_000,
+    likes: 4_000_000,
+    comments: 141_000,
+    progress: 91,
+    progressLabel: 'Distribution Goal',
+  },
+  {
+    id: 'studley-campaign',
+    category: 'brands',
+    thumbnail: studleyClientImage,
+    name: 'Studley',
+    campaignType: 'Brand Campaign',
+    duration: '5 weeks',
+    tagline:
+      'Distribution-focused edits helped stretch campaign creative across every major short-form surface.',
+    views: 18_400_000,
+    likes: 1_600_000,
+    comments: 72_000,
+    progress: 74,
+    progressLabel: 'Growth Goal',
+  },
+  {
+    id: 'cmajor-audio',
+    category: 'music',
+    thumbnail: cmajorClientImage,
+    name: 'C Major',
+    campaignType: 'Audio Campaign',
+    duration: '10 weeks',
+    tagline:
+      'Audio-first creative seeded track moments into clip formats built for replay and retention.',
+    views: 27_800_000,
+    likes: 2_200_000,
+    comments: 88_000,
+    progress: 83,
+    progressLabel: 'Stream Goal',
+  },
+  {
+    id: 'top5-music',
+    category: 'music',
+    thumbnail: top5ClientImage,
+    name: 'Top5',
+    campaignType: 'Music Campaign',
+    duration: '7 weeks',
+    tagline:
+      'Music-driven snippets and fan edits kept release moments circulating across creator ecosystems.',
+    views: 21_500_000,
+    likes: 1_800_000,
+    comments: 81_000,
+    progress: 88,
+    progressLabel: 'Release Goal',
+  },
+  {
+    id: 'heartbreakeyllow-creator',
+    category: 'creators',
+    thumbnail: heartbreakeyllowClientImage,
+    name: 'Heartbreakeyllow',
+    campaignType: 'Creator Campaign',
+    duration: '6 weeks',
+    tagline:
+      'Community clip packages amplified creator moments into a steady pipeline of discovery content.',
+    views: 39_100_000,
+    likes: 2_900_000,
+    comments: 109_000,
+    progress: 84,
+    progressLabel: 'Growth Goal',
+  },
+  {
+    id: 'jay-almighty-creator',
+    category: 'creators',
+    thumbnail: jayAlmightyClientImage,
+    name: 'Jay Almighty',
+    campaignType: 'Creator Campaign',
+    duration: '3 months',
+    tagline:
+      'Highlight recaps and reactive edits gave high-performing content a longer life across platforms.',
+    views: 29_600_000,
+    likes: 2_100_000,
+    comments: 76_000,
+    progress: 69,
+    progressLabel: 'Retention Goal',
+  },
+  {
+    id: 'lahmikejr-creator',
+    category: 'creators',
+    thumbnail: lahmikejrClientImage,
+    name: 'Lahmikejr',
+    campaignType: 'Creator Campaign',
+    duration: '9 weeks',
+    tagline:
+      'Daily cutdowns transformed live moments into repeatable clips optimized for follower growth.',
+    views: 33_800_000,
+    likes: 2_500_000,
+    comments: 97_000,
+    progress: 93,
+    progressLabel: 'Follower Goal',
+  },
+  {
+    id: 'slim-creator',
+    category: 'creators',
+    thumbnail: slimClientImage,
+    name: 'Slim',
+    campaignType: 'Creator Campaign',
+    duration: '6 weeks',
+    tagline:
+      'High-frequency clip distribution turned standout moments into a reliable reach engine.',
+    views: 24_600_000,
+    likes: 1_950_000,
+    comments: 73_000,
+    progress: 81,
+    progressLabel: 'Reach Goal',
+  },
+  {
+    id: 'sophie-creator',
+    category: 'creators',
+    thumbnail: sophieClientImage,
+    name: 'Sophie',
+    campaignType: 'Creator Campaign',
+    duration: '8 weeks',
+    tagline:
+      'Creator-first edits kept audience engagement climbing through polished short-form moments.',
+    views: 31_400_000,
+    likes: 2_280_000,
+    comments: 84_000,
+    progress: 87,
+    progressLabel: 'Engagement Goal',
+  },
+  {
+    id: 'veryscamlikely-creator',
+    category: 'creators',
+    thumbnail: veryscamlikelyClientImage,
+    name: 'Veryscamlikely',
+    campaignType: 'Creator Campaign',
+    duration: '7 weeks',
+    tagline:
+      'Short-form storytelling gave creator moments a more consistent posting rhythm and stronger replay value.',
+    views: 22_900_000,
+    likes: 1_740_000,
+    comments: 68_000,
+    progress: 79,
+    progressLabel: 'Consistency Goal',
+  },
+];
+
+const compactMetricFormatter = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
 
 const videos = [
   {
@@ -873,7 +1106,6 @@ function SiteChrome({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-canvas text-ivory">
       <NoiseOverlay />
-      <CustomCursor />
       <Navbar />
       <main className="relative z-10 pt-24">{children}</main>
       <Footer />
@@ -919,14 +1151,48 @@ function ScrollToTop() {
 
 function Navbar() {
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const compactProgress = useMotionValue(0);
+  const headerPaddingY = useTransform(compactProgress, [0, 1], [16, 8]);
+  const shellMaxWidth = useTransform(compactProgress, [0, 1], ['90rem', '80rem']);
+  const shellBorderRadius = useTransform(compactProgress, [0, 1], [16, 14]);
+  const shellBorderColor = useTransform(
+    compactProgress,
+    [0, 1],
+    ['rgba(255, 255, 255, 0.1)', 'rgba(4, 6, 232, 0.3)'],
+  );
+  const shellBackground = useTransform(
+    compactProgress,
+    [0, 1],
+    ['rgba(2, 3, 11, 0.7)', 'rgba(2, 3, 11, 0.88)'],
+  );
+  const shellShadow = useTransform(
+    compactProgress,
+    [0, 1],
+    ['0 0 0 rgba(0, 0, 0, 0)', '0 24px 80px rgba(0, 0, 0, 0.45)'],
+  );
+  const shellBlur = useTransform(compactProgress, [0, 1], ['blur(24px)', 'blur(30px)']);
+  const innerMinHeight = useTransform(compactProgress, [0, 1], [72, 56]);
+  const innerPaddingY = useTransform(compactProgress, [0, 1], [16, 8]);
+  const desktopNavGap = useTransform(compactProgress, [0, 1], [32, 26]);
+  const desktopNavFontSize = useTransform(
+    compactProgress,
+    [0, 1],
+    ['0.875rem', '0.8125rem'],
+  );
+  const logoScale = useTransform(compactProgress, [0, 1], [1, 0.94]);
+  const ctaScale = useTransform(compactProgress, [0, 1], [1, 0.96]);
+  const ctaFontSize = useTransform(compactProgress, [0, 1], ['0.875rem', '0.8125rem']);
+  const mobileToggleScale = useTransform(compactProgress, [0, 1], [1, 0.96]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => {
+      setCompact(window.scrollY > NAVBAR_SCROLL_THRESHOLD);
+    };
 
     onScroll();
-    window.addEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -934,26 +1200,56 @@ function Navbar() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const controls = animate(
+      compactProgress,
+      compact ? 1 : 0,
+      navbarMotionTransition,
+    );
+
+    return () => controls.stop();
+  }, [compact, compactProgress]);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-4 py-4 sm:px-6 lg:px-8">
-      <div
-        className={`mx-auto max-w-7xl rounded-2xl border transition-all duration-150 ${
-          scrolled
-            ? 'border-gold/30 bg-canvas/90 shadow-[0_24px_80px_rgba(0,0,0,0.45)]'
-            : 'border-white/10 bg-canvas/70'
-        } backdrop-blur-xl`}
+    <motion.header
+      className="fixed inset-x-0 top-0 z-40 px-4 sm:px-6 lg:px-8"
+      style={{ paddingBottom: headerPaddingY, paddingTop: headerPaddingY }}
+    >
+      <motion.div
+        className="mx-auto w-full border"
+        style={{
+          WebkitBackdropFilter: shellBlur,
+          backdropFilter: shellBlur,
+          backgroundColor: shellBackground,
+          borderColor: shellBorderColor,
+          borderRadius: shellBorderRadius,
+          boxShadow: shellShadow,
+          maxWidth: shellMaxWidth,
+        }}
       >
-        <div className="flex items-center justify-between px-5 py-4 sm:px-6">
+        <motion.div
+          className="flex items-center justify-between px-5 sm:px-6"
+          style={{
+            minHeight: innerMinHeight,
+            paddingBottom: innerPaddingY,
+            paddingTop: innerPaddingY,
+          }}
+        >
           <Link className="group flex items-end gap-3" to="/">
-            <LogoWordmark />
+            <motion.div style={{ originX: 0, originY: 0.5, scale: logoScale }}>
+              <LogoWordmark />
+            </motion.div>
           </Link>
 
-          <nav className="hidden items-center gap-8 lg:flex">
+          <motion.nav
+            className="hidden items-center lg:flex"
+            style={{ fontSize: desktopNavFontSize, gap: desktopNavGap }}
+          >
             {navLinks.map((link) => (
               <NavLink
                 key={link.to}
                 className={({ isActive }) =>
-                  `nav-link text-sm font-semibold uppercase tracking-[0.24em] ${
+                  `nav-link font-semibold uppercase tracking-[0.24em] ${
                     isActive ? 'text-gold' : 'text-ivory/80'
                   }`
                 }
@@ -962,28 +1258,30 @@ function Navbar() {
                 {link.label}
               </NavLink>
             ))}
-          </nav>
+          </motion.nav>
 
-          <div className="hidden lg:block">
-            <a
+          <motion.div className="hidden lg:block" style={{ scale: ctaScale }}>
+            <motion.a
               className="btn-secondary"
               href="https://www.discord.gg/forevermedia"
               rel="noreferrer"
+              style={{ fontSize: ctaFontSize }}
               target="_blank"
             >
               Join Discord
-            </a>
-          </div>
+            </motion.a>
+          </motion.div>
 
-          <button
+          <motion.button
             aria-label="Toggle menu"
             className="inline-flex rounded-full border border-white/10 p-3 text-ivory transition hover:border-gold/40 hover:text-gold lg:hidden"
             onClick={() => setMobileOpen((current) => !current)}
+            style={{ scale: mobileToggleScale }}
             type="button"
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         <AnimatePresence>
           {mobileOpen && (
@@ -1020,8 +1318,8 @@ function Navbar() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </header>
+      </motion.div>
+    </motion.header>
   );
 }
 
@@ -1030,35 +1328,75 @@ function Footer() {
     <footer className="relative z-10 mt-16 border-t border-gold/20 bg-black/30">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent" />
       <div className="mx-auto max-w-7xl px-6 pb-8 pt-14 sm:px-8 lg:px-10">
-        <div className="grid gap-10 lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
-          <div className="max-w-sm space-y-4">
+        <div className="grid gap-10 lg:grid-cols-[1.7fr_0.9fr_1.1fr] lg:gap-14">
+          <div className="max-w-md space-y-5">
             <LogoWordmark footer />
             <p className="max-w-xs text-sm leading-7 text-mist">
               The #1 performance-based short-form distribution network.
             </p>
+
+            <div className="h-px w-20 bg-white/10" />
+
+            <div className="space-y-3">
+              <SocialLink
+                className="justify-start px-0 py-0 text-sm text-mist hover:text-gold"
+                href="https://www.discord.gg/forevermedia"
+                icon={<img alt="Discord" className="h-4 w-4 object-contain opacity-90" src={discordIcon} />}
+                label="Discord"
+                plain
+              />
+              <SocialLink
+                className="justify-start px-0 py-0 text-sm text-mist hover:text-gold"
+                href="https://www.instagram.com/forevermedia.io"
+                icon={<Instagram size={16} />}
+                label="Instagram"
+                plain
+              />
+              <SocialLink
+                className="justify-start px-0 py-0 text-sm text-mist hover:text-gold"
+                href="mailto:contact@forevermedia.io"
+                icon={<Mail size={16} />}
+                label="Email"
+                plain
+              />
+            </div>
           </div>
 
-          <FooterColumn
-            title="Navigation"
-            items={[
-              { label: 'Home', to: '/' },
-              { label: 'ClipX', to: '/clipx' },
-              { label: 'FAQ', to: '/faq' },
-              { label: 'Contact', to: '/contact' },
-            ]}
-          />
-          <FooterColumn
-            title="Legal"
-            items={[
-              { label: 'Privacy Policy', to: '/privacy' },
-              { label: 'Terms of Service', to: '/terms' },
-            ]}
-          />
+          <div className="space-y-5">
+            <h4 className="text-xs font-bold uppercase tracking-[0.3em] text-gold/80">
+              Navigation
+            </h4>
+            <div className="space-y-3">
+              <Link className="block text-sm text-mist transition hover:text-gold" to="/">
+                Home
+              </Link>
+              <Link className="block text-sm text-mist transition hover:text-gold" to="/clipx">
+                ClipX
+              </Link>
+              <Link className="block text-sm text-mist transition hover:text-gold" to="/faq">
+                FAQ
+              </Link>
+              <Link className="block text-sm text-mist transition hover:text-gold" to="/contact">
+                Contact
+              </Link>
+              <div className="h-px w-20 bg-white/10" />
+              <Link
+                className="block text-sm text-mist transition hover:text-gold"
+                to="/privacy"
+              >
+                Privacy Policy
+              </Link>
+              <Link className="block text-sm text-mist transition hover:text-gold" to="/terms">
+                Terms of Service
+              </Link>
+            </div>
+          </div>
+
           <div className="space-y-5">
             <h4 className="text-xs font-bold uppercase tracking-[0.3em] text-gold/80">
               Products
             </h4>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 text-sm">
               <ProductStatusCard
                 label="ClipX"
                 logo={clipxLogo}
@@ -1088,23 +1426,6 @@ function Footer() {
                 </Link>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <SocialLink
-                href="https://www.discord.gg/forevermedia"
-                icon={<img alt="Discord" className="h-4 w-4 object-contain opacity-90" src={discordIcon} />}
-                label="Discord"
-              />
-              <SocialLink
-                href="https://www.instagram.com/forevermedia.io"
-                icon={<Instagram size={16} />}
-                label="Instagram"
-              />
-              <SocialLink
-                href="mailto:contact@forevermedia.io"
-                icon={<Mail size={16} />}
-                label="Email"
-              />
-            </div>
           </div>
         </div>
 
@@ -1120,8 +1441,22 @@ function Footer() {
             </Link>
           </div>
         </div>
+
+        <ForeverMediaStatement />
       </div>
     </footer>
+  );
+}
+
+function ForeverMediaStatement() {
+  return (
+    <div className="mt-10 pt-10 sm:mt-12 sm:pt-12">
+      <div className="relative isolate w-full select-none py-4 sm:py-5">
+        <p className="whitespace-nowrap font-heading text-center text-[clamp(1.55rem,5.35vw,5.35rem)] font-black uppercase leading-none tracking-[-0.09em] text-white/[0.14] [text-shadow:0_0_24px_rgba(255,255,255,0.08)] sm:tracking-[-0.08em]">
+          FOREVER MEDIA
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -1301,10 +1636,10 @@ function FooterColumn({ title, items }) {
   );
 }
 
-function SocialLink({ href, icon, label }) {
+function SocialLink({ href, icon, label, plain = false, className = '' }) {
   return (
     <a
-      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-ivory/80 transition hover:border-gold/30 hover:text-gold"
+      className={`inline-flex items-center gap-2 transition ${plain ? '' : 'rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-ivory/80 hover:border-gold/30'} ${className}`}
       href={href}
       rel="noreferrer"
       target="_blank"
@@ -1317,14 +1652,14 @@ function SocialLink({ href, icon, label }) {
 
 function ProductStatusCard({ label, logo, status, to, href }) {
   const content = (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:border-gold/30 hover:bg-white/[0.06]">
+    <div className="flex items-center justify-between gap-4 py-1 transition">
       <div className="flex items-center gap-3">
-        <img alt={label} className="h-10 w-10 rounded-full object-cover" src={logo} />
+        <img alt={label} className="h-8 w-8 object-contain" src={logo} />
         <span className="font-semibold text-ivory">{label}</span>
       </div>
       <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-mist">
         <span className="h-2 w-2 rounded-full bg-emerald-400" />
-        {status}
+        {status.replace(' - ', ' • ')}
       </span>
     </div>
   );
@@ -1346,75 +1681,6 @@ function ProductStatusCard({ label, logo, status, to, href }) {
 
 function NoiseOverlay() {
   return <div className="noise-overlay pointer-events-none fixed inset-0 z-30" />;
-}
-
-function CustomCursor() {
-  const [enabled, setEnabled] = useState(false);
-  const [interactive, setInteractive] = useState(false);
-  const [position, setPosition] = useState({ x: -100, y: -100 });
-
-  useEffect(() => {
-    const media = window.matchMedia('(pointer: fine)');
-    const sync = () => {
-      const active = media.matches;
-      setEnabled(active);
-      document.body.dataset.cursorEnabled = active ? 'true' : 'false';
-    };
-
-    const onMove = (event) => {
-      setPosition({ x: event.clientX, y: event.clientY });
-    };
-
-    const onOver = (event) => {
-      setInteractive(
-        Boolean(
-          event.target.closest(
-            'a, button, input, textarea, select, [role="button"], [data-cursor]',
-          ),
-        ),
-      );
-    };
-
-    sync();
-    media.addEventListener('change', sync);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseover', onOver);
-
-    return () => {
-      media.removeEventListener('change', sync);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseover', onOver);
-      delete document.body.dataset.cursorEnabled;
-    };
-  }, []);
-
-  if (!enabled) {
-    return null;
-  }
-
-  return (
-    <div className="pointer-events-none fixed inset-0 z-50 hidden lg:block">
-      <motion.div
-        animate={{
-          x: position.x - 6,
-          y: position.y - 6,
-          scale: interactive ? 1.7 : 1,
-        }}
-        className="absolute h-3 w-3 rounded-full bg-gold shadow-[0_0_24px_rgba(4,6,232,0.8)]"
-        transition={{ duration: 0.07, ease: 'linear' }}
-      />
-      <motion.div
-        animate={{
-          x: position.x - 18,
-          y: position.y - 18,
-          scale: interactive ? 1.35 : 1,
-          opacity: interactive ? 0.28 : 0.14,
-        }}
-        className="absolute h-9 w-9 rounded-full border border-gold/50"
-        transition={{ duration: 0.09, ease: 'linear' }}
-      />
-    </div>
-  );
 }
 
 function AnimatedSection({ children, className = '' }) {
@@ -1657,19 +1923,255 @@ function StatCounter({ value, prefix = '', suffix = '', label }) {
   );
 }
 
-function MarqueeRow({ items, reverse = false }) {
-  const duplicated = [...items, ...items];
+function formatCompactMetric(value) {
+  return compactMetricFormatter.format(value);
+}
+
+function getMarqueeRows(items) {
+  if (items.length <= 4) {
+    return [items];
+  }
+
+  return [
+    items.filter((_, index) => index % 2 === 0),
+    items.filter((_, index) => index % 2 !== 0),
+  ].filter((row) => row.length > 0);
+}
+
+function MarqueeRow({ items, reverse = false, variant = 'card' }) {
+  const duplicated =
+    items.length > 1 ? [...items, ...items] : [...items, ...items, ...items, ...items];
+  const desktopDuration =
+    variant === 'logo'
+      ? `${Math.max(items.length * 4, 14)}s`
+      : `${Math.max(items.length * 7, 20)}s`;
+  const mobileDuration =
+    variant === 'logo'
+      ? `${Math.max(items.length * 3, 12)}s`
+      : `${Math.max(items.length * 5, 16)}s`;
 
   return (
     <div className="marquee-shell group">
-      <div className={reverse ? 'marquee-track marquee-track-reverse' : 'marquee-track'}>
+      <div
+        className={reverse ? 'marquee-track marquee-track-reverse' : 'marquee-track'}
+        style={{
+          '--marquee-duration': desktopDuration,
+          '--marquee-duration-mobile': mobileDuration,
+        }}
+        >
         {duplicated.map((item, index) => (
-          <div className="logo-pill" key={`${item}-${index}`}>
-            <span className="logo-mark" />
-            <span>{item}</span>
-          </div>
+          variant === 'logo' ? (
+            <CampaignLogoPill item={item} key={`${item.id}-${index}`} />
+          ) : variant === 'image' ? (
+            <CampaignImagePill item={item} key={`${item.id}-${index}`} />
+          ) : (
+            <CampaignMarqueeCard item={item} key={`${item.id}-${index}`} />
+          )
         ))}
       </div>
+    </div>
+  );
+}
+
+function CampaignLogoPill({ item }) {
+  const meta = campaignCategoryMeta[item.category];
+
+  return (
+    <div className="campaign-logo-pill">
+      <span className="campaign-logo-thumb">
+        <img alt={`${item.name} logo`} className="h-full w-full object-cover" src={item.thumbnail} />
+      </span>
+      <span className="font-heading text-lg font-bold tracking-[-0.04em] text-ivory">
+        {item.name}
+      </span>
+      <span
+        className="h-2.5 w-2.5 rounded-full"
+        style={{
+          backgroundColor: meta.accentColor,
+          boxShadow: `0 0 16px ${meta.accentColor}`,
+        }}
+      />
+    </div>
+  );
+}
+
+function CampaignImagePill({ item }) {
+  return (
+    <div className="campaign-image-pill">
+      <img
+        alt={`${item.name} campaign thumbnail`}
+        className="h-full w-full object-contain"
+        src={item.thumbnail}
+      />
+    </div>
+  );
+}
+
+function CampaignMarqueeCard({ item }) {
+  const meta = campaignCategoryMeta[item.category];
+  const stats = [
+    { label: 'Views', value: item.views, Icon: Eye },
+    { label: 'Likes', value: item.likes, Icon: Heart },
+    { label: 'Comments', value: item.comments, Icon: MessageCircleMore },
+  ];
+
+  return (
+    <GlassCard className="campaign-card overflow-hidden p-0">
+      <div className="relative aspect-[16/10] overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),rgba(8,11,26,0.92)_72%)]">
+        <img
+          alt={`${item.name} campaign thumbnail`}
+          className="h-full w-full object-contain p-3"
+          src={item.thumbnail}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,20,0.08),rgba(4,7,20,0.46)_58%,rgba(4,7,20,0.92))]" />
+        <div className="absolute left-4 top-4">
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${meta.badgeClassName}`}
+          >
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{
+                backgroundColor: meta.accentColor,
+                boxShadow: `0 0 14px ${meta.accentColor}`,
+              }}
+            />
+            {meta.label}
+          </span>
+        </div>
+        <div className="absolute bottom-4 left-4 right-4">
+          <h3 className="font-heading text-[1.65rem] font-bold tracking-[-0.05em] text-ivory">
+            {item.name}
+          </h3>
+        </div>
+      </div>
+
+      <div className="space-y-5 p-5">
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex rounded-full border border-gold/20 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+            {item.campaignType}
+          </span>
+          <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
+            {item.duration}
+          </span>
+        </div>
+
+        <p className="min-h-[4.5rem] text-sm leading-6 text-mist">{item.tagline}</p>
+
+        <div className="grid grid-cols-3 gap-3">
+          {stats.map(({ label, value, Icon }) => (
+            <div
+              className="rounded-[20px] border border-white/10 bg-black/20 px-3 py-3"
+              key={label}
+            >
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-mist">
+                <Icon color={meta.accentColor} size={14} />
+                <span>{label}</span>
+              </div>
+              <p className="mt-3 font-heading text-xl font-bold tracking-[-0.04em] text-ivory">
+                {formatCompactMetric(value)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-mist">
+            <span>{item.progressLabel}</span>
+            <span className="text-ivory">{item.progress}%</span>
+          </div>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${item.progress}%`,
+                background: meta.progressGradient,
+                boxShadow: meta.progressShadow,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </GlassCard>
+  );
+}
+
+function CampaignMarqueeSection() {
+  const [activeTab, setActiveTab] = useState('all');
+  const visibleItems =
+    activeTab === 'all'
+      ? campaignMarqueeItems
+      : campaignMarqueeItems.filter((item) => item.category === activeTab);
+  const rows = getMarqueeRows(visibleItems);
+  const rowVariant = activeTab === 'all' ? 'image' : 'card';
+
+  return (
+    <div className="mx-auto max-w-7xl">
+      <SectionIntro
+        eyebrow="Campaign Archive"
+        description="Browse mock campaign cards by partner type. This structure is ready for real client data whenever you want to swap it in."
+        title="Trusted Campaigns Across Brands, Creators & Audio"
+      />
+
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        {campaignFilterTabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const count =
+            tab.id === 'all'
+              ? campaignMarqueeItems.length
+              : campaignMarqueeItems.filter((item) => item.category === tab.id).length;
+
+          return (
+            <button
+              className={`relative inline-flex items-center gap-3 overflow-hidden rounded-full border px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
+                isActive
+                  ? 'border-gold/30 text-ivory'
+                  : 'border-white/10 bg-white/[0.03] text-mist hover:border-gold/20 hover:text-ivory'
+              }`}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              type="button"
+            >
+              {isActive ? (
+                <motion.span
+                  className="absolute inset-0 rounded-full border border-gold/30 bg-[linear-gradient(135deg,rgba(4,6,232,0.28),rgba(122,152,255,0.18))]"
+                  layoutId="campaign-marquee-tab"
+                  transition={navbarMotionTransition}
+                />
+              ) : null}
+              <span className="relative z-10">{tab.label}</span>
+              <span
+                className={`relative z-10 inline-flex min-w-[1.6rem] items-center justify-center rounded-full border px-2 py-1 text-[10px] ${
+                  isActive
+                    ? 'border-white/15 bg-white/10 text-ivory'
+                    : 'border-white/10 bg-white/[0.04] text-mist'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-10 space-y-6"
+          exit={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: 10 }}
+          key={activeTab}
+          transition={navbarMotionTransition}
+        >
+          {rows.map((row, index) => (
+            <MarqueeRow
+              items={row}
+              key={`${activeTab}-${index}`}
+              reverse={index % 2 === 1}
+              variant={rowVariant}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -1996,16 +2498,7 @@ function HomePage({ openCampaignModal }) {
       </AnimatedSection>
 
       <AnimatedSection className="px-6 py-24 sm:px-8 lg:px-10">
-        <div className="mx-auto max-w-7xl">
-          <SectionIntro
-            description="We have partnered with top creators, brands, and companies to amplify their content and reach."
-            title="Trusted by Leading Brands & Creators"
-          />
-          <div className="mt-14 space-y-6">
-            <MarqueeRow items={brandLogos} />
-            <MarqueeRow items={brandLogos} reverse />
-          </div>
-        </div>
+        <CampaignMarqueeSection />
       </AnimatedSection>
 
       <AnimatedSection className="relative overflow-hidden px-6 py-24 sm:px-8 lg:px-10">
