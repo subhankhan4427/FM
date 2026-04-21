@@ -383,6 +383,108 @@
   }
 }
 
+@media (max-width: 768px) {
+  .filter-pills-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 8px;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .filter-pills-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-pill {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .campaigns-scroll-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 20px;
+  }
+
+  .campaign-card {
+    width: 100%;
+    min-width: unset;
+    flex-shrink: 1;
+  }
+
+  .card-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat-box {
+    padding: 8px 10px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .card-brand-logo {
+    max-height: 36px;
+    width: auto;
+  }
+
+  .card-brand-name {
+    font-size: 22px;
+  }
+
+  .card-description {
+    font-size: 13px;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-badge-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .card-badge {
+    font-size: 9px;
+    padding: 4px 10px;
+  }
+
+  .card-progress-section {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .card-goal-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .card-goal-percent {
+    font-size: 13px;
+  }
+}
+
 @media (min-width: 768px) {
   .campaign-card {
     width: 21rem;

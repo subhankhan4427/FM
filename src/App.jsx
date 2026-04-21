@@ -1160,7 +1160,7 @@ function Navbar() {
   const shellBorderColor = useTransform(
     compactProgress,
     [0, 1],
-    ['rgba(255, 255, 255, 0.1)', 'rgba(4, 6, 232, 0.3)'],
+    ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.1)'],
   );
   const shellBackground = useTransform(
     compactProgress,
@@ -2026,7 +2026,7 @@ function CampaignMarqueeCard({ item }) {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,20,0.08),rgba(4,7,20,0.46)_58%,rgba(4,7,20,0.92))]" />
         <div className="absolute left-4 top-4">
           <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${meta.badgeClassName}`}
+            className={`card-badge inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${meta.badgeClassName}`}
           >
             <span
               className="h-2 w-2 rounded-full"
@@ -2039,45 +2039,45 @@ function CampaignMarqueeCard({ item }) {
           </span>
         </div>
         <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="font-heading text-[1.65rem] font-bold tracking-[-0.05em] text-ivory">
+          <h3 className="card-brand-name font-heading text-[1.65rem] font-bold tracking-[-0.05em] text-ivory">
             {item.name}
           </h3>
         </div>
       </div>
 
       <div className="space-y-5 p-5">
-        <div className="flex flex-wrap gap-2">
-          <span className="inline-flex rounded-full border border-gold/20 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
+        <div className="card-badge-row flex flex-wrap gap-2">
+          <span className="card-badge inline-flex rounded-full border border-gold/20 bg-gold/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
             {item.campaignType}
           </span>
-          <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
+          <span className="card-badge inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
             {item.duration}
           </span>
         </div>
 
-        <p className="min-h-[4.5rem] text-sm leading-6 text-mist">{item.tagline}</p>
+        <p className="card-description min-h-[4.5rem] text-sm leading-6 text-mist">{item.tagline}</p>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="card-stats-row grid grid-cols-3 gap-3">
           {stats.map(({ label, value, Icon }) => (
             <div
-              className="rounded-[20px] border border-white/10 bg-black/20 px-3 py-3"
+              className="stat-box rounded-[20px] border border-white/10 bg-black/20 px-3 py-3"
               key={label}
             >
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-mist">
+              <div className="stat-label flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-mist">
                 <Icon color={meta.accentColor} size={14} />
                 <span>{label}</span>
               </div>
-              <p className="mt-3 font-heading text-xl font-bold tracking-[-0.04em] text-ivory">
+              <p className="stat-value mt-3 font-heading text-xl font-bold tracking-[-0.04em] text-ivory">
                 {formatCompactMetric(value)}
               </p>
             </div>
           ))}
         </div>
 
-        <div>
+        <div className="card-progress-section">
           <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-mist">
-            <span>{item.progressLabel}</span>
-            <span className="text-ivory">{item.progress}%</span>
+            <span className="card-goal-label">{item.progressLabel}</span>
+            <span className="card-goal-percent text-ivory">{item.progress}%</span>
           </div>
           <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
             <div
@@ -2097,12 +2097,19 @@ function CampaignMarqueeCard({ item }) {
 
 function CampaignMarqueeSection() {
   const [activeTab, setActiveTab] = useState('all');
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(3);
   const visibleItems =
     activeTab === 'all'
       ? campaignMarqueeItems
       : campaignMarqueeItems.filter((item) => item.category === activeTab);
   const rows = getMarqueeRows(visibleItems);
   const rowVariant = activeTab === 'all' ? 'image' : 'card';
+  const mobileCardItems = visibleItems.slice(0, mobileVisibleCount);
+  const hasMoreMobileCards = mobileVisibleCount < visibleItems.length;
+
+  useEffect(() => {
+    setMobileVisibleCount(3);
+  }, [activeTab]);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -2112,7 +2119,7 @@ function CampaignMarqueeSection() {
         title="Trusted Campaigns Across Brands, Creators & Audio"
       />
 
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <div className="filter-pills-container mt-10 flex flex-wrap items-center justify-center gap-3">
         {campaignFilterTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const count =
@@ -2122,13 +2129,16 @@ function CampaignMarqueeSection() {
 
           return (
             <button
-              className={`relative inline-flex items-center gap-3 overflow-hidden rounded-full border px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
+              className={`filter-pill relative inline-flex items-center gap-3 overflow-hidden rounded-full border px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
                 isActive
                   ? 'border-gold/30 text-ivory'
                   : 'border-white/10 bg-white/[0.03] text-mist hover:border-gold/20 hover:text-ivory'
               }`}
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setMobileVisibleCount(3);
+              }}
               type="button"
             >
               {isActive ? (
@@ -2162,14 +2172,49 @@ function CampaignMarqueeSection() {
           key={activeTab}
           transition={navbarMotionTransition}
         >
-          {rows.map((row, index) => (
-            <MarqueeRow
-              items={row}
-              key={`${activeTab}-${index}`}
-              reverse={index % 2 === 1}
-              variant={rowVariant}
-            />
-          ))}
+          <div className="hidden md:block">
+            {rows.map((row, index) => (
+              <MarqueeRow
+                items={row}
+                key={`${activeTab}-${index}`}
+                reverse={index % 2 === 1}
+                variant={rowVariant}
+              />
+            ))}
+          </div>
+
+          {activeTab === 'all' ? (
+            <div className="space-y-4 md:hidden">
+              {rows.map((row, index) => (
+                <MarqueeRow
+                  items={row}
+                  key={`${activeTab}-mobile-${index}`}
+                  reverse={index % 2 === 1}
+                  variant="image"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-5 md:hidden">
+              <div className="campaigns-scroll-container">
+                {mobileCardItems.map((item) => (
+                  <CampaignMarqueeCard item={item} key={item.id} />
+                ))}
+              </div>
+
+              {hasMoreMobileCards ? (
+                <div className="px-5">
+                  <button
+                    className="w-full rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-ivory transition hover:border-gold/20 hover:text-gold"
+                    onClick={() => setMobileVisibleCount((count) => count + 3)}
+                    type="button"
+                  >
+                    Load More Campaigns
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
