@@ -1105,12 +1105,151 @@ function App() {
 function SiteChrome({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-canvas text-ivory">
+      <ShootingStar />
       <NoiseOverlay />
       <Navbar />
       <main className="relative z-10 pt-24">{children}</main>
       <Footer />
     </div>
   );
+}
+
+function ShootingStar() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return undefined;
+    }
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext('2d');
+
+    if (!canvas || !context) {
+      return undefined;
+    }
+
+    const shoots = [];
+    let animationFrameId;
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
+    let lastFrame = performance.now();
+    let nextShoot = performance.now() + randomBetween(10000, 20000);
+
+    const resizeCanvas = () => {
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * pixelRatio);
+      canvas.height = Math.floor(height * pixelRatio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    };
+
+    const spawnShoot = () => {
+      const fromLeft = Math.random() > 0.5;
+      const crossFrames = randomBetween(260, 380);
+      const horizontalSpan = width + 200;
+      const speed = horizontalSpan / crossFrames;
+      const angle = randomBetween(-0.34, -0.16);
+
+      shoots.push({
+        x: fromLeft ? -100 : width + 100,
+        y: randomBetween(height * 0.55, height * 0.82),
+        vx: fromLeft ? speed : -speed,
+        vy: speed * angle,
+        cachedGrad: null,
+        prevX: 0,
+        prevY: 0,
+      });
+    };
+
+    const drawFrame = (now) => {
+      const frameFactor = Math.min((now - lastFrame) / 16.67, 2);
+      lastFrame = now;
+      context.clearRect(0, 0, width, height);
+
+      if (now >= nextShoot) {
+        spawnShoot();
+        nextShoot = now + randomBetween(10000, 20000);
+      }
+
+      for (let index = shoots.length - 1; index >= 0; index -= 1) {
+        const shoot = shoots[index];
+        shoot.x += shoot.vx * frameFactor;
+        shoot.y += shoot.vy * frameFactor;
+
+        const tailLen = 90;
+        const tailX = shoot.x - (shoot.vx * tailLen) / 4;
+        const tailY = shoot.y - (shoot.vy * tailLen) / 4;
+        const movedFarEnough =
+          Math.hypot(shoot.x - shoot.prevX, shoot.y - shoot.prevY) > 2;
+
+        if (!shoot.cachedGrad || movedFarEnough) {
+          const gradient = context.createLinearGradient(shoot.x, shoot.y, tailX, tailY);
+          gradient.addColorStop(0, 'hsla(200, 90%, 96%, 0.95)');
+          gradient.addColorStop(0.5, 'hsla(200, 80%, 88%, 0.4)');
+          gradient.addColorStop(1, 'hsla(200, 80%, 95%, 0)');
+          shoot.cachedGrad = gradient;
+          shoot.prevX = shoot.x;
+          shoot.prevY = shoot.y;
+        }
+
+        context.save();
+        context.lineWidth = 2;
+        context.lineCap = 'round';
+        context.strokeStyle = shoot.cachedGrad;
+        context.shadowBlur = 12;
+        context.shadowColor = 'hsla(200, 90%, 90%, 0.9)';
+        context.beginPath();
+        context.moveTo(shoot.x, shoot.y);
+        context.lineTo(tailX, tailY);
+        context.stroke();
+
+        context.beginPath();
+        context.arc(shoot.x, shoot.y, 1.6, 0, Math.PI * 2);
+        context.fillStyle = 'hsla(200, 100%, 98%, 0.95)';
+        context.fill();
+        context.restore();
+
+        const offRight = shoot.vx > 0 && shoot.x > width + 140;
+        const offLeft = shoot.vx < 0 && shoot.x < -140;
+        const offTop = shoot.y < -100;
+
+        if (offRight || offLeft || offTop) {
+          shoots.splice(index, 1);
+        }
+      }
+
+      animationFrameId = window.requestAnimationFrame(drawFrame);
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    animationFrameId = window.requestAnimationFrame(drawFrame);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
+  return (
+    <canvas
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 z-[1]"
+      ref={canvasRef}
+    />
+  );
+}
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
 }
 
 function PageTransition({ children }) {
@@ -1324,8 +1463,7 @@ function Navbar() {
 
 function Footer() {
   return (
-    <footer className="relative z-10 mt-16 border-t border-gold/20 bg-black/30">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent" />
+    <footer className="relative z-10 mt-16 bg-black/30">
       <div className="mx-auto max-w-7xl px-6 pb-8 pt-14 sm:px-8 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.7fr_0.9fr_1.1fr] lg:gap-14">
           <div className="max-w-md space-y-5">
@@ -1441,7 +1579,28 @@ function ForeverMediaStatement() {
   return (
     <div className="mt-10 pt-10 sm:mt-12 sm:pt-12">
       <div className="relative isolate w-full select-none py-4 sm:py-5">
-        <p className="whitespace-nowrap font-heading text-center text-[clamp(1.55rem,5.35vw,5.35rem)] font-black uppercase leading-none tracking-[-0.09em] text-white/[0.14] [text-shadow:0_0_24px_rgba(255,255,255,0.08)] sm:tracking-[-0.08em]">
+        <svg
+          aria-hidden="true"
+          className="hidden h-auto w-full overflow-visible text-white/[0.14] drop-shadow-[0_0_24px_rgba(255,255,255,0.08)] lg:block"
+          preserveAspectRatio="none"
+          viewBox="0 0 1000 118"
+        >
+          <text
+            dominantBaseline="middle"
+            fill="currentColor"
+            fontFamily="Syne, sans-serif"
+            fontSize="104"
+            fontWeight="800"
+            lengthAdjust="spacingAndGlyphs"
+            textAnchor="start"
+            textLength="1000"
+            x="0"
+            y="58"
+          >
+            FOREVER MEDIA
+          </text>
+        </svg>
+        <p className="whitespace-nowrap text-center font-heading text-[clamp(1.55rem,5.35vw,5.35rem)] font-black uppercase leading-none tracking-[-0.09em] text-white/[0.14] [text-shadow:0_0_24px_rgba(255,255,255,0.08)] sm:tracking-[-0.08em] lg:hidden">
           FOREVER MEDIA
         </p>
       </div>
@@ -2347,7 +2506,7 @@ function HomePage({ openCampaignModal }) {
               animate="show"
               initial="hidden"
               variants={fadeUp}
-              className="inline-flex rounded-full border border-gold/25 bg-white/[0.05] px-5 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold backdrop-blur-xl"
+              className="inline-flex rounded-full border border-white/15 bg-white/[0.07] px-5 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-ivory/85 backdrop-blur-xl"
             >
               * The #1 Clipping Network
             </motion.div>
